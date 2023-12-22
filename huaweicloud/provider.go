@@ -456,10 +456,11 @@ func Provider() *schema.Provider {
 			"huaweicloud_dds_flavors":   dds.DataSourceDDSFlavorV3(),
 			"huaweicloud_dds_instances": dds.DataSourceDdsInstance(),
 
-			"huaweicloud_dms_kafka_flavors":   dms.DataSourceKafkaFlavors(),
-			"huaweicloud_dms_kafka_instances": dms.DataSourceDmsKafkaInstances(),
-			"huaweicloud_dms_product":         dms.DataSourceDmsProduct(),
-			"huaweicloud_dms_maintainwindow":  dms.DataSourceDmsMaintainWindow(),
+			"huaweicloud_dms_kafka_flavors":             dms.DataSourceKafkaFlavors(),
+			"huaweicloud_dms_kafka_instances":           dms.DataSourceDmsKafkaInstances(),
+			"huaweicloud_dms_product":                   dms.DataSourceDmsProduct(),
+			"huaweicloud_dms_maintainwindow":            dms.DataSourceDmsMaintainWindow(),
+			"huaweicloud_dms_kafka_smart_connect_tasks": dms.DataSourceDmsKafkaSmartConnectTasks(),
 
 			"huaweicloud_dms_rabbitmq_flavors": dms.DataSourceRabbitMQFlavors(),
 
@@ -628,6 +629,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_vpc_subnet_ids":         vpc.DataSourceVpcSubnetIdsV1(),
 
 			"huaweicloud_vpcep_public_services": vpcep.DataSourceVPCEPPublicServices(),
+			"huaweicloud_vpcep_services":        vpcep.DataSourceVPCEPServices(),
 
 			"huaweicloud_vpn_gateway_availability_zones": vpn.DataSourceVpnGatewayAZs(),
 			"huaweicloud_vpn_gateways":                   vpn.DataSourceGateways(),
@@ -1097,15 +1099,22 @@ func Provider() *schema.Provider {
 			"huaweicloud_modelarts_network":                modelarts.ResourceModelartsNetwork(),
 			"huaweicloud_modelarts_resource_pool":          modelarts.ResourceModelartsResourcePool(),
 
-			"huaweicloud_dataarts_studio_instance":              dataarts.ResourceStudioInstance(),
-			"huaweicloud_dataarts_studio_directory":             dataarts.ResourceDataArtsStudioDirectory(),
-			"huaweicloud_dataarts_studio_subject":               dataarts.ResourceDataArtsStudioSubject(),
-			"huaweicloud_dataarts_studio_service_app":           dataarts.ResourceServiceApp(),
-			"huaweicloud_dataarts_studio_permission_set":        dataarts.ResourcePermissionSet(),
-			"huaweicloud_dataarts_studio_business_metric":       dataarts.ResourceBusinessMetric(),
-			"huaweicloud_dataarts_studio_data_recognition_rule": dataarts.ResourceStudioRule(),
-			// DataArts Factory --- Data Development
-			"huaweicloud_dataarts_studio_resource": dataarts.ResourceStudioResource(),
+			// DataArts Studio - Management Center
+			"huaweicloud_dataarts_studio_instance": dataarts.ResourceStudioInstance(),
+			// DataArts Architecture
+			"huaweicloud_dataarts_architecture_directory":       dataarts.ResourceArchitectureDirectory(),
+			"huaweicloud_dataarts_architecture_model":           dataarts.ResourceArchitectureModel(),
+			"huaweicloud_dataarts_architecture_subject":         dataarts.ResourceArchitectureSubject(),
+			"huaweicloud_dataarts_architecture_business_metric": dataarts.ResourceBusinessMetric(),
+			"huaweicloud_dataarts_architecture_process":         dataarts.ResourceArchitectureProcess(),
+			// DataArts Factory
+			"huaweicloud_dataarts_factory_resource": dataarts.ResourceFactoryResource(),
+			"huaweicloud_dataarts_factory_job":      dataarts.ResourceFactoryJob(),
+			// DataArts Security
+			"huaweicloud_dataarts_security_permission_set":        dataarts.ResourceSecurityPermissionSet(),
+			"huaweicloud_dataarts_security_data_recognition_rule": dataarts.ResourceSecurityRule(),
+			// DataArts DataService
+			"huaweicloud_dataarts_dataservice_app": dataarts.ResourceDataServiceApp(),
 
 			"huaweicloud_mpc_transcoding_template":       mpc.ResourceTranscodingTemplate(),
 			"huaweicloud_mpc_transcoding_template_group": mpc.ResourceTranscodingTemplateGroup(),
