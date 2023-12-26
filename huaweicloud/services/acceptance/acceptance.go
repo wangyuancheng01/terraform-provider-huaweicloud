@@ -152,6 +152,8 @@ var (
 
 	// The cluster ID of the CCE
 	HW_CCE_CLUSTER_ID = os.Getenv("HW_CCE_CLUSTER_ID")
+	// The absolute chart path of the CCE
+	HW_CCE_CHART_PATH = os.Getenv("HW_CCE_CHART_PATH")
 	// The cluster name of the CCE
 	HW_CCE_CLUSTER_NAME = os.Getenv("HW_CCE_CLUSTER_NAME")
 	// The cluster ID of the CCE
@@ -203,6 +205,17 @@ var (
 	HW_NEW_CERTIFICATE_CONTENT     = os.Getenv("HW_NEW_CERTIFICATE_CONTENT")
 	HW_NEW_CERTIFICATE_PRIVATE_KEY = os.Getenv("HW_NEW_CERTIFICATE_PRIVATE_KEY")
 	HW_NEW_CERTIFICATE_ROOT_CA     = os.Getenv("HW_NEW_CERTIFICATE_ROOT_CA")
+
+	HW_GM_CERTIFICATE_CONTENT             = os.Getenv("HW_GM_CERTIFICATE_CONTENT")
+	HW_GM_CERTIFICATE_PRIVATE_KEY         = os.Getenv("HW_GM_CERTIFICATE_PRIVATE_KEY")
+	HW_GM_ENC_CERTIFICATE_CONTENT         = os.Getenv("HW_GM_ENC_CERTIFICATE_CONTENT")
+	HW_GM_ENC_CERTIFICATE_PRIVATE_KEY     = os.Getenv("HW_GM_ENC_CERTIFICATE_PRIVATE_KEY")
+	HW_GM_CERTIFICATE_CHAIN               = os.Getenv("HW_GM_CERTIFICATE_CHAIN")
+	HW_NEW_GM_CERTIFICATE_CONTENT         = os.Getenv("HW_NEW_GM_CERTIFICATE_CONTENT")
+	HW_NEW_GM_CERTIFICATE_PRIVATE_KEY     = os.Getenv("HW_NEW_GM_CERTIFICATE_PRIVATE_KEY")
+	HW_NEW_GM_ENC_CERTIFICATE_CONTENT     = os.Getenv("HW_NEW_GM_ENC_CERTIFICATE_CONTENT")
+	HW_NEW_GM_ENC_CERTIFICATE_PRIVATE_KEY = os.Getenv("HW_NEW_GM_ENC_CERTIFICATE_PRIVATE_KEY")
+	HW_NEW_GM_CERTIFICATE_CHAIN           = os.Getenv("HW_NEW_GM_CERTIFICATE_CHAIN")
 
 	HW_CODEARTS_RESOURCE_POOL_ID  = os.Getenv("HW_CODEARTS_RESOURCE_POOL_ID")
 	HW_CODEARTS_ENABLE_FLAG       = os.Getenv("HW_CODEARTS_ENABLE_FLAG")
@@ -806,6 +819,14 @@ func TestAccPreCheckCceClusterId(t *testing.T) {
 }
 
 // lintignore:AT003
+func TestAccPreCheckCceChartPath(t *testing.T) {
+	// HW_CCE_CHART_PATH is the absolute path of the chart package
+	if HW_CCE_CHART_PATH == "" {
+		t.Skip("HW_CCE_CHART_PATH must be set for CCE chart acceptance tests")
+	}
+}
+
+// lintignore:AT003
 func TestAccPreCheckWorkloadNameSpace(t *testing.T) {
 	if HW_WORKLOAD_NAMESPACE == "" {
 		t.Skip("HW_WORKLOAD_NAMESPACE must be set for SWR image trigger acceptance tests")
@@ -882,6 +903,21 @@ func TestAccPreCheckCertificateFull(t *testing.T) {
 	TestAccPreCheckCertificateWithoutRootCA(t)
 	if HW_CERTIFICATE_ROOT_CA == "" || HW_NEW_CERTIFICATE_ROOT_CA == "" {
 		t.Skip("HW_CERTIFICATE_ROOT_CA and HW_NEW_CERTIFICATE_ROOT_CA must be set for root CA validation")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckGMCertificate(t *testing.T) {
+	if HW_GM_CERTIFICATE_CONTENT == "" || HW_GM_CERTIFICATE_PRIVATE_KEY == "" ||
+		HW_GM_ENC_CERTIFICATE_CONTENT == "" || HW_GM_ENC_CERTIFICATE_PRIVATE_KEY == "" ||
+		HW_GM_CERTIFICATE_CHAIN == "" ||
+		HW_NEW_GM_CERTIFICATE_CONTENT == "" || HW_NEW_GM_CERTIFICATE_PRIVATE_KEY == "" ||
+		HW_NEW_GM_ENC_CERTIFICATE_CONTENT == "" || HW_NEW_GM_ENC_CERTIFICATE_PRIVATE_KEY == "" ||
+		HW_NEW_GM_CERTIFICATE_CHAIN == "" {
+		t.Skip("HW_GM_CERTIFICATE_CONTENT, HW_GM_CERTIFICATE_PRIVATE_KEY, HW_GM_ENC_CERTIFICATE_CONTENT," +
+			" HW_GM_ENC_CERTIFICATE_PRIVATE_KEY, HW_GM_CERTIFICATE_CHAIN, HW_NEW_GM_CERTIFICATE_CONTENT," +
+			" HW_NEW_GM_CERTIFICATE_PRIVATE_KEY, HW_NEW_GM_ENC_CERTIFICATE_CONTENT," +
+			" HW_NEW_GM_ENC_CERTIFICATE_PRIVATE_KEY, HW_NEW_GM_CERTIFICATE_CHAIN must be set for GM certificate")
 	}
 }
 
