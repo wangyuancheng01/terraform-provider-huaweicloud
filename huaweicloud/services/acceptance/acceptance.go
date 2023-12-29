@@ -175,6 +175,8 @@ var (
 
 	// The ID of the CBR backup
 	HW_IMS_BACKUP_ID = os.Getenv("HW_IMS_BACKUP_ID")
+	// The shared backup ID wants to accept.
+	HW_SHARED_BACKUP_ID = os.Getenv("HW_SHARED_BACKUP_ID")
 
 	// The SecMaster workspace ID
 	HW_SECMASTER_WORKSPACE_ID = os.Getenv("HW_SECMASTER_WORKSPACE_ID")
@@ -229,6 +231,8 @@ var (
 
 	HW_CERT_BATCH_PUSH_ID = os.Getenv("HW_CERT_BATCH_PUSH_ID")
 
+	HW_AS_SCALING_GROUP_ID = os.Getenv("HW_AS_SCALING_GROUP_ID")
+
 	HW_DATAARTS_WORKSPACE_ID            = os.Getenv("HW_DATAARTS_WORKSPACE_ID")
 	HW_DATAARTS_CDM_NAME                = os.Getenv("HW_DATAARTS_CDM_NAME")
 	HW_DATAARTS_MANAGER_ID              = os.Getenv("HW_DATAARTS_MANAGER_ID")
@@ -240,6 +244,9 @@ var (
 	HW_DATAARTS_BUILTIN_RULE_ID         = os.Getenv("HW_DATAARTS_BUILTIN_RULE_ID")
 	HW_DATAARTS_BUILTIN_RULE_NAME       = os.Getenv("HW_DATAARTS_BUILTIN_RULE_NAME")
 	HW_DATAARTS_SUBJECT_ID              = os.Getenv("HW_DATAARTS_SUBJECT_ID")
+	HW_DATAARTS_CONNECTION_NAME         = os.Getenv("HW_DATAARTS_CONNECTION_NAME")
+	HW_DATAARTS_ARCHITECTURE_USER_ID    = os.Getenv("HW_DATAARTS_ARCHITECTURE_USER_ID")
+	HW_DATAARTS_ARCHITECTURE_USER_NAME  = os.Getenv("HW_DATAARTS_ARCHITECTURE_USER_NAME")
 )
 
 // TestAccProviders is a static map containing only the main provider instance.
@@ -856,6 +863,13 @@ func TestAccPreCheckImsBackupId(t *testing.T) {
 }
 
 // lintignore:AT003
+func TestAccPreCheckAcceptBackup(t *testing.T) {
+	if HW_SHARED_BACKUP_ID == "" {
+		t.Skip("HW_SHARED_BACKUP_ID must be set for CBR backup share acceptance")
+	}
+}
+
+// lintignore:AT003
 func TestAccPreCheckSourceImage(t *testing.T) {
 	if HW_IMAGE_SHARE_SOURCE_IMAGE_ID == "" {
 		t.Skip("Skip the interface acceptance test because of the source image ID is missing.")
@@ -1031,6 +1045,13 @@ func TestAccPreCheckCERT(t *testing.T) {
 }
 
 // lintignore:AT003
+func TestAccPreCheckASScalingGroupID(t *testing.T) {
+	if HW_AS_SCALING_GROUP_ID == "" {
+		t.Skip("HW_AS_SCALING_GROUP_ID must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
 func TestAccPreCheckDataArtsWorkSpaceID(t *testing.T) {
 	if HW_DATAARTS_WORKSPACE_ID == "" {
 		t.Skip("This environment does not support DataArts Studio tests")
@@ -1080,5 +1101,19 @@ func TestAccPreCheckDataArtsBuiltinRule(t *testing.T) {
 func TestAccPreCheckDataArtsSubjectID(t *testing.T) {
 	if HW_DATAARTS_SUBJECT_ID == "" {
 		t.Skip("HW_DATAARTS_SUBJECT_ID must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckDataArtsConnectionName(t *testing.T) {
+	if HW_DATAARTS_CONNECTION_NAME == "" {
+		t.Skip("HW_DATAARTS_CONNECTION_NAME must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckDataArtsArchitectureReviewer(t *testing.T) {
+	if HW_DATAARTS_ARCHITECTURE_USER_ID == "" || HW_DATAARTS_ARCHITECTURE_USER_NAME == "" {
+		t.Skip("HW_DATAARTS_ARCHITECTURE_USER_ID and HW_DATAARTS_ARCHITECTURE_USER_NAME must be set for the acceptance test")
 	}
 }
