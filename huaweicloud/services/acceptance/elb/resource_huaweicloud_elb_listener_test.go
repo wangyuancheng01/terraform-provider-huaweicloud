@@ -77,6 +77,45 @@ func TestAccElbV3Listener_basic(t *testing.T) {
 	})
 }
 
+func TestAccElbV3Listener_with_port_ranges(t *testing.T) {
+	var listener listeners.Listener
+	rName := acceptance.RandomAccResourceNameWithDash()
+	resourceName := "huaweicloud_elb_listener.test"
+
+	rc := acceptance.InitResourceCheck(
+		resourceName,
+		&listener,
+		getELBListenerResourceFunc,
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      rc.CheckResourceDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccElbV3ListenerConfig_with_port_ranges(rName),
+				Check: resource.ComposeTestCheckFunc(
+					rc.CheckResourceExists(),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "forward_eip", "false"),
+					resource.TestCheckResourceAttr(resourceName, "forward_port", "false"),
+					resource.TestCheckResourceAttr(resourceName, "forward_request_port", "false"),
+					resource.TestCheckResourceAttr(resourceName, "forward_host", "true"),
+					resource.TestCheckResourceAttr(resourceName, "port_ranges.0.start_port", "8000"),
+					resource.TestCheckResourceAttr(resourceName, "port_ranges.0.end_port", "8080"),
+					resource.TestCheckResourceAttr(resourceName, "protection_status", "nonProtection"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccElbV3Listener_with_default_pool(t *testing.T) {
 	var listener listeners.Listener
 	rName := acceptance.RandomAccResourceNameWithDash()
@@ -145,7 +184,6 @@ data "huaweicloud_availability_zones" "test" {}
 resource "huaweicloud_elb_loadbalancer" "test" {
   name            = "%s"
   ipv4_subnet_id  = data.huaweicloud_vpc_subnet.test.ipv4_subnet_id
-  ipv6_network_id = data.huaweicloud_vpc_subnet.test.id
 
   availability_zone = [
     data.huaweicloud_availability_zones.test.names[0]
@@ -189,7 +227,6 @@ resource "huaweicloud_elb_loadbalancer" "test" {
   name              = "%s"
   cross_vpc_backend = true
   ipv4_subnet_id    = data.huaweicloud_vpc_subnet.test.ipv4_subnet_id
-  ipv6_network_id   = data.huaweicloud_vpc_subnet.test.id
 
   availability_zone = [
     data.huaweicloud_availability_zones.test.names[0]
@@ -227,6 +264,44 @@ resource "huaweicloud_elb_listener" "test" {
   }
 }
 `, rNameUpdate, rNameUpdate)
+}
+
+func testAccElbV3ListenerConfig_with_port_ranges(rName string) string {
+	return fmt.Sprintf(`
+
+data "huaweicloud_vpc_subnet" "test" {
+  name = "subnet-default"
+}
+
+data "huaweicloud_availability_zones" "test" {}
+
+resource "huaweicloud_elb_loadbalancer" "test" {
+  name            = "%[1]s"
+  ipv4_subnet_id  = data.huaweicloud_vpc_subnet.test.ipv4_subnet_id
+
+  availability_zone = [
+    data.huaweicloud_availability_zones.test.names[0]
+  ]
+
+  tags = {
+    key   = "value"
+    owner = "terraform"
+  }
+}
+
+resource "huaweicloud_elb_listener" "test" {
+  name            = "%[1]s"
+  description     = "test description"
+  protocol        = "UDP"
+  loadbalancer_id = huaweicloud_elb_loadbalancer.test.id
+
+  port_ranges {
+    start_port = 8000
+    end_port   = 8080
+  }
+
+}
+`, rName)
 }
 
 func testAccElbV3ListenerConfig_with_default_pool(rName string) string {

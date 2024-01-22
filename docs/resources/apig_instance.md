@@ -83,9 +83,8 @@ The following arguments are supported:
 * `description` - (Optional, String) Specifies the description of the dedicated instance.  
   The description contain a maximum of `255` characters and the angle brackets (< and >) are not allowed.
 
-* `enterprise_project_id` - (Optional, String, ForceNew) Specifies the enterprise project ID to which the dedicated
-  instance belongs.  
-  This parameter is required for enterprise users. Changing this will create a new resource.
+* `enterprise_project_id` - (Optional, String) Specifies the enterprise project ID to which the dedicated
+  instance belongs. This parameter is required for enterprise users.
 
 * `bandwidth_size` - (Optional, Int) Specifies the egress bandwidth size of the dedicated instance.  
   The valid value ranges from `0` to `2,000`.
@@ -129,7 +128,7 @@ In addition to all arguments above, the following attributes are exported:
 * `supported_features` - The supported features of the APIG dedicated instance.
 * `created_at` - Time when the dedicated instance is created, in RFC-3339 format.
 * `status` - Status of the dedicated instance.
-* `vpcep_service_address` -  The address (full name) of the VPC endpoint service, in the
+* `vpcep_service_address` - The address (full name) of the VPC endpoint service, in the
   "{region}.{vpcep_service_name}.{service_id}" format. If this parameter is not specified, the system automatically
   generates a name in the "{region}.apig.{service_id}" format.
 

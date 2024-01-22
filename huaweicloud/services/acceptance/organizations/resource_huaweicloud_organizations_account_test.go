@@ -18,12 +18,13 @@ import (
 func getAccountResourceFunc(cfg *config.Config, state *terraform.ResourceState) (interface{}, error) {
 	// getAccount: Query Organizations account
 	var (
+		region            = acceptance.HW_REGION_NAME
 		getAccountHttpUrl = "v1/organizations/accounts/{account_id}"
 		getAccountProduct = "organizations"
 	)
-	getAccountClient, err := cfg.NewServiceClient(getAccountProduct, "")
+	getAccountClient, err := cfg.NewServiceClient(getAccountProduct, region)
 	if err != nil {
-		return nil, fmt.Errorf("error creating Organizations Client: %s", err)
+		return nil, fmt.Errorf("error creating Organizations client: %s", err)
 	}
 
 	getAccountPath := getAccountClient.Endpoint + getAccountHttpUrl
@@ -85,9 +86,10 @@ func TestAccAccount_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      rName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            rName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"email", "phone", "agency_name"},
 			},
 		},
 	})
@@ -96,7 +98,9 @@ func TestAccAccount_basic(t *testing.T) {
 func testAccount_basic(name string) string {
 	return fmt.Sprintf(`
 resource "huaweicloud_organizations_account" "test" {
-  name = "%s"
+  name  = "%s"
+  email = "account_1@abc.com"
+  phone = "13987654321"
 
   tags = {
     "key1" = "value1"
@@ -110,6 +114,8 @@ func testAccount_basic_update(name string) string {
 	return fmt.Sprintf(`
 resource "huaweicloud_organizations_account" "test" {
   name      = "%s"
+  email     = "account_1@abc.com"
+  phone     = "13987654321"
   parent_id = "%s"
 
   tags = {

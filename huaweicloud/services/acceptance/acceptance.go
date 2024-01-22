@@ -119,6 +119,8 @@ var (
 	HW_WORKSPACE_AD_DOMAIN_IP   = os.Getenv("HW_WORKSPACE_AD_DOMAIN_IP")   // Active domain IP, e.g. "192.168.196.3".
 	HW_WORKSPACE_AD_VPC_ID      = os.Getenv("HW_WORKSPACE_AD_VPC_ID")      // The VPC ID to which the AD server and desktops belongs.
 	HW_WORKSPACE_AD_NETWORK_ID  = os.Getenv("HW_WORKSPACE_AD_NETWORK_ID")  // The network ID to which the AD server belongs.
+	// The internet access port to which the Workspace service.
+	HW_WORKSPACE_INTERNET_ACCESS_PORT = os.Getenv("HW_WORKSPACE_INTERNET_ACCESS_PORT")
 
 	HW_FGS_TRIGGER_LTS_AGENCY = os.Getenv("HW_FGS_TRIGGER_LTS_AGENCY")
 
@@ -172,6 +174,10 @@ var (
 	HW_SWR_TARGET_REGION = os.Getenv("HW_SWR_TARGET_REGION")
 	// The target organization of SWR image auto sync
 	HW_SWR_TARGET_ORGANIZATION = os.Getenv("HW_SWR_TARGET_ORGANIZATION")
+	// The organization of SWR image tag
+	HW_SWR_ORGANIZATION = os.Getenv("HW_SWR_ORGANIZATION")
+	// The repository of SWR image tag
+	HW_SWR_REPOSITORY = os.Getenv("HW_SWR_REPOSITORY")
 
 	// The ID of the CBR backup
 	HW_IMS_BACKUP_ID = os.Getenv("HW_IMS_BACKUP_ID")
@@ -229,6 +235,10 @@ var (
 
 	HW_CCI_NAMESPACE = os.Getenv("HW_CCI_NAMESPACE")
 
+	HW_CC_GLOBAL_GATEWAY_ID  = os.Getenv("HW_CC_GLOBAL_GATEWAY_ID")
+	HW_CC_PEER_DOMAIN_ID     = os.Getenv("HW_CC_PEER_DOMAIN_ID")
+	HW_CC_PEER_CONNECTION_ID = os.Getenv("HW_CC_PEER_CONNECTION_ID")
+
 	HW_CERT_BATCH_PUSH_ID = os.Getenv("HW_CERT_BATCH_PUSH_ID")
 
 	HW_AS_SCALING_GROUP_ID = os.Getenv("HW_AS_SCALING_GROUP_ID")
@@ -247,6 +257,11 @@ var (
 	HW_DATAARTS_CONNECTION_NAME         = os.Getenv("HW_DATAARTS_CONNECTION_NAME")
 	HW_DATAARTS_ARCHITECTURE_USER_ID    = os.Getenv("HW_DATAARTS_ARCHITECTURE_USER_ID")
 	HW_DATAARTS_ARCHITECTURE_USER_NAME  = os.Getenv("HW_DATAARTS_ARCHITECTURE_USER_NAME")
+
+	HW_EVS_AVAILABILITY_ZONE_GPSSD2 = os.Getenv("HW_EVS_AVAILABILITY_ZONE_GPSSD2")
+	HW_EVS_AVAILABILITY_ZONE_ESSD2  = os.Getenv("HW_EVS_AVAILABILITY_ZONE_ESSD2")
+
+	HW_ECS_LAUNCH_TEMPLATE_ID = os.Getenv("HW_ECS_LAUNCH_TEMPLATE_ID")
 )
 
 // TestAccProviders is a static map containing only the main provider instance.
@@ -459,11 +474,17 @@ func RandomCidrAndGatewayIp() (string, string) {
 	return fmt.Sprintf("172.16.%d.0/24", seed), fmt.Sprintf("172.16.%d.1", seed)
 }
 
-func RandomPassword() string {
+func RandomPassword(customChars ...string) string {
+	var specialChars string
+	if len(customChars) < 1 {
+		specialChars = "~!@#%^*-_=+?"
+	} else {
+		specialChars = customChars[0]
+	}
 	return fmt.Sprintf("%s%s%s%d",
 		acctest.RandStringFromCharSet(2, "ABCDEFGHIJKLMNOPQRSTUVWXZY"),
 		acctest.RandStringFromCharSet(3, acctest.CharSetAlpha),
-		acctest.RandStringFromCharSet(2, "~!@#%^*-_=+?"),
+		acctest.RandStringFromCharSet(2, specialChars),
 		acctest.RandIntRange(1000, 9999))
 }
 
@@ -562,6 +583,20 @@ func TestAccPreCheckOBSUserDomainNames(t *testing.T) {
 func TestAccPreCheckChargingMode(t *testing.T) {
 	if HW_CHARGING_MODE != "prePaid" {
 		t.Skip("This environment does not support prepaid tests")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckAvailabilityZoneGPSSD2(t *testing.T) {
+	if HW_EVS_AVAILABILITY_ZONE_GPSSD2 == "" {
+		t.Skip("If you want to change the QoS of a GPSSD2 type cloudvolume, you must specify an availability zone that supports GPSSD2 type under the current region")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckAvailabilityZoneESSD2(t *testing.T) {
+	if HW_EVS_AVAILABILITY_ZONE_ESSD2 == "" {
+		t.Skip("If you want to change the QoS of a ESSD2 type cloudvolume, you must specify an availability zone that supports ESSD2 type under the current region")
 	}
 }
 
@@ -770,6 +805,13 @@ func TestAccPreCheckWorkspaceAD(t *testing.T) {
 }
 
 // lintignore:AT003
+func TestAccPreCheckWorkspaceInternetAccessPort(t *testing.T) {
+	if HW_WORKSPACE_INTERNET_ACCESS_PORT == "" {
+		t.Skip("HW_WORKSPACE_INTERNET_ACCESS_PORT must be set for Workspace service acceptance tests.")
+	}
+}
+
+// lintignore:AT003
 func TestAccPreCheckER(t *testing.T) {
 	if HW_ER_TEST_ON == "" {
 		t.Skip("Skip all ER acceptance tests.")
@@ -830,7 +872,8 @@ func TestAccPreCheckCceClusterId(t *testing.T) {
 func TestAccPreCheckCceChartPath(t *testing.T) {
 	// HW_CCE_CHART_PATH is the absolute path of the chart package
 	if HW_CCE_CHART_PATH == "" {
-		t.Skip("HW_CCE_CHART_PATH must be set for CCE chart acceptance tests")
+		t.Skip("HW_CCE_CHART_PATH must be set for CCE chart acceptance tests, " +
+			"the value is the absolute path of the chart package")
 	}
 }
 
@@ -852,6 +895,20 @@ func TestAccPreCheckSwrTargetRegion(t *testing.T) {
 func TestAccPreCheckSwrTargetOrigination(t *testing.T) {
 	if HW_SWR_TARGET_ORGANIZATION == "" {
 		t.Skip("HW_SWR_TARGET_ORGANIZATION must be set for SWR image auto sync tests")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckSwrOrigination(t *testing.T) {
+	if HW_SWR_ORGANIZATION == "" {
+		t.Skip("HW_SWR_ORGANIZATION must be set for SWR image tags tests")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckSwrRepository(t *testing.T) {
+	if HW_SWR_REPOSITORY == "" {
+		t.Skip("HW_SWR_REPOSITORY must be set for SWR image tags tests")
 	}
 }
 
@@ -1045,6 +1102,20 @@ func TestAccPreCheckCERT(t *testing.T) {
 }
 
 // lintignore:AT003
+func TestAccPreCheckCCGlobalGateway(t *testing.T) {
+	if HW_CC_GLOBAL_GATEWAY_ID == "" {
+		t.Skip("HW_CC_GLOBAL_GATEWAY_ID must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckCCAuth(t *testing.T) {
+	if HW_CC_PEER_DOMAIN_ID == "" || HW_CC_PEER_CONNECTION_ID == "" {
+		t.Skip("HW_CC_PEER_DOMAIN_ID, HW_CC_PEER_CONNECTION_ID must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
 func TestAccPreCheckASScalingGroupID(t *testing.T) {
 	if HW_AS_SCALING_GROUP_ID == "" {
 		t.Skip("HW_AS_SCALING_GROUP_ID must be set for the acceptance test")
@@ -1115,5 +1186,19 @@ func TestAccPreCheckDataArtsConnectionName(t *testing.T) {
 func TestAccPreCheckDataArtsArchitectureReviewer(t *testing.T) {
 	if HW_DATAARTS_ARCHITECTURE_USER_ID == "" || HW_DATAARTS_ARCHITECTURE_USER_NAME == "" {
 		t.Skip("HW_DATAARTS_ARCHITECTURE_USER_ID and HW_DATAARTS_ARCHITECTURE_USER_NAME must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckAKAndSK(t *testing.T) {
+	if HW_ACCESS_KEY == "" || HW_SECRET_KEY == "" {
+		t.Skip("HW_ACCESS_KEY and HW_SECRET_KEY must be set for acceptance tests")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckECSLaunchTemplateID(t *testing.T) {
+	if HW_ECS_LAUNCH_TEMPLATE_ID == "" {
+		t.Skip("HW_ECS_LAUNCH_TEMPLATE_ID must be set for the acceptance test")
 	}
 }

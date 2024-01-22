@@ -612,6 +612,10 @@ func (c *Config) BlockStorageV21Client(region string) (*golangsdk.ServiceClient,
 	return c.NewServiceClient("evsv21", region)
 }
 
+func (c *Config) BlockStorageV5Client(region string) (*golangsdk.ServiceClient, error) {
+	return c.NewServiceClient("evsv5", region)
+}
+
 func (c *Config) BlockStorageV2Client(region string) (*golangsdk.ServiceClient, error) {
 	return c.NewServiceClient("evs", region)
 }
@@ -741,6 +745,10 @@ func (c *Config) RmsV1Client(region string) (*golangsdk.ServiceClient, error) {
 // ********** client for Security **********
 func (c *Config) AntiDDosV1Client(region string) (*golangsdk.ServiceClient, error) {
 	return c.NewServiceClient("anti-ddos", region)
+}
+
+func (c *Config) AntiDDosV2Client(region string) (*golangsdk.ServiceClient, error) {
+	return c.NewServiceClient("anti-ddosv2", region)
 }
 
 func (c *Config) AadV1Client(region string) (*golangsdk.ServiceClient, error) {
