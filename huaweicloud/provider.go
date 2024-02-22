@@ -395,11 +395,12 @@ func Provider() *schema.Provider {
 			"huaweicloud_apig_environments": apig.DataSourceEnvironments(),
 			"huaweicloud_apig_groups":       apig.DataSourceGroups(),
 
-			"huaweicloud_as_configurations":  as.DataSourceASConfigurations(),
-			"huaweicloud_as_groups":          as.DataSourceASGroups(),
-			"huaweicloud_as_activity_logs":   as.DataSourceActivityLogs(),
-			"huaweicloud_as_policies":        as.DataSourceASPolicies(),
-			"huaweicloud_as_lifecycle_hooks": as.DataSourceLifeCycleHooks(),
+			"huaweicloud_as_configurations":      as.DataSourceASConfigurations(),
+			"huaweicloud_as_groups":              as.DataSourceASGroups(),
+			"huaweicloud_as_activity_logs":       as.DataSourceActivityLogs(),
+			"huaweicloud_as_policies":            as.DataSourceASPolicies(),
+			"huaweicloud_as_lifecycle_hooks":     as.DataSourceLifeCycleHooks(),
+			"huaweicloud_as_policy_execute_logs": as.DataSourcePolicyExecuteLogs(),
 
 			"huaweicloud_account":            DataSourceAccount(),
 			"huaweicloud_availability_zones": DataSourceAvailabilityZones(),
@@ -432,10 +433,11 @@ func Provider() *schema.Provider {
 			"huaweicloud_cnad_advanced_available_objects": cnad.DataSourceAvailableProtectedObjects(),
 			"huaweicloud_cnad_advanced_protected_objects": cnad.DataSourceProtectedObjects(),
 
-			"huaweicloud_compute_flavors":      ecs.DataSourceEcsFlavors(),
-			"huaweicloud_compute_instance":     ecs.DataSourceComputeInstance(),
-			"huaweicloud_compute_instances":    ecs.DataSourceComputeInstances(),
-			"huaweicloud_compute_servergroups": ecs.DataSourceComputeServerGroups(),
+			"huaweicloud_compute_flavors":                 ecs.DataSourceEcsFlavors(),
+			"huaweicloud_compute_instance":                ecs.DataSourceComputeInstance(),
+			"huaweicloud_compute_instances":               ecs.DataSourceComputeInstances(),
+			"huaweicloud_compute_servergroups":            ecs.DataSourceComputeServerGroups(),
+			"huaweicloud_compute_instance_remote_console": ecs.DataSourceComputeInstanceRemoteConsole(),
 
 			"huaweicloud_cts_notifications": cts.DataSourceNotifications(),
 
@@ -454,6 +456,8 @@ func Provider() *schema.Provider {
 
 			"huaweicloud_dbss_flavors": dbss.DataSourceDbssFlavors(),
 
+			"huaweicloud_dc_virtual_gateways": dc.DataSourceDCVirtualGateways(),
+
 			"huaweicloud_dcs_flavors":         dcs.DataSourceDcsFlavorsV2(),
 			"huaweicloud_dcs_maintainwindow":  dcs.DataSourceDcsMaintainWindow(),
 			"huaweicloud_dcs_instances":       dcs.DataSourceDcsInstance(),
@@ -461,8 +465,12 @@ func Provider() *schema.Provider {
 			"huaweicloud_dcs_template_detail": dcs.DataSourceTemplateDetail(),
 			"huaweicloud_dcs_backups":         dcs.DataSourceBackups(),
 
-			"huaweicloud_dds_flavors":   dds.DataSourceDDSFlavorV3(),
-			"huaweicloud_dds_instances": dds.DataSourceDdsInstance(),
+			"huaweicloud_dds_flavors":       dds.DataSourceDDSFlavorV3(),
+			"huaweicloud_dds_instances":     dds.DataSourceDdsInstance(),
+			"huaweicloud_dds_storage_types": dds.DataSourceDdsStorageTypes(),
+
+			"huaweicloud_dli_datasource_auths":       dli.DataSourceAuths(),
+			"huaweicloud_dli_datasource_connections": dli.DataSourceConnections(),
 
 			"huaweicloud_dms_kafka_flavors":             dms.DataSourceKafkaFlavors(),
 			"huaweicloud_dms_kafka_instances":           dms.DataSourceDmsKafkaInstances(),
@@ -496,10 +504,12 @@ func Provider() *schema.Provider {
 			"huaweicloud_er_route_tables":       er.DataSourceRouteTables(),
 			"huaweicloud_er_availability_zones": er.DataSourceAvailabilityZones(),
 
-			"huaweicloud_evs_volumes":      evs.DataSourceEvsVolumesV2(),
-			"huaweicloud_evs_snapshots":    evs.DataSourceEvsSnapshots(),
-			"huaweicloud_fgs_dependencies": fgs.DataSourceFunctionGraphDependencies(),
-			"huaweicloud_fgs_functions":    fgs.DataSourceFunctionGraphFunctions(),
+			"huaweicloud_evs_volumes":   evs.DataSourceEvsVolumesV2(),
+			"huaweicloud_evs_snapshots": evs.DataSourceEvsSnapshots(),
+
+			"huaweicloud_fgs_application_templates": fgs.DataSourceFunctionGraphApplicationTemplates(),
+			"huaweicloud_fgs_dependencies":          fgs.DataSourceFunctionGraphDependencies(),
+			"huaweicloud_fgs_functions":             fgs.DataSourceFunctionGraphFunctions(),
 
 			"huaweicloud_gaussdb_cassandra_dedicated_resource": gaussdb.DataSourceGeminiDBDehResource(),
 			"huaweicloud_gaussdb_cassandra_flavors":            gaussdb.DataSourceCassandraFlavors(),
@@ -572,10 +582,12 @@ func Provider() *schema.Provider {
 
 			"huaweicloud_nat_gateway":             nat.DataSourcePublicGateway(),
 			"huaweicloud_nat_gateways":            nat.DataSourcePublicGateways(),
+			"huaweicloud_nat_dnat_rules":          nat.DataSourceDnatRules(),
 			"huaweicloud_nat_private_dnat_rules":  nat.DataSourcePrivateDnatRules(),
 			"huaweicloud_nat_private_gateways":    nat.DataSourcePrivateGateways(),
 			"huaweicloud_nat_private_snat_rules":  nat.DataSourcePrivateSnatRules(),
 			"huaweicloud_nat_private_transit_ips": nat.DataSourcePrivateTransitIps(),
+			"huaweicloud_nat_snat_rules":          nat.DataSourceSnatRules(),
 
 			"huaweicloud_networking_port":           vpc.DataSourceNetworkingPortV2(),
 			"huaweicloud_networking_secgroup":       vpc.DataSourceNetworkingSecGroup(),
@@ -601,19 +613,25 @@ func Provider() *schema.Provider {
 			"huaweicloud_obs_bucket_object": obs.DataSourceObsBucketObject(),
 
 			"huaweicloud_ram_resource_permissions": ram.DataSourceRAMPermissions(),
+			"huaweicloud_ram_shared_resources":     ram.DataSourceRAMSharedResources(),
 
-			"huaweicloud_rds_flavors":              rds.DataSourceRdsFlavor(),
-			"huaweicloud_rds_engine_versions":      rds.DataSourceRdsEngineVersionsV3(),
-			"huaweicloud_rds_instances":            rds.DataSourceRdsInstances(),
-			"huaweicloud_rds_backups":              rds.DataSourceBackup(),
-			"huaweicloud_rds_storage_types":        rds.DataSourceStoragetype(),
-			"huaweicloud_rds_sqlserver_collations": rds.DataSourceSQLServerCollations(),
-			"huaweicloud_rds_pg_plugins":           rds.DataSourcePgPlugins(),
-			"huaweicloud_rds_pg_accounts":          rds.DataSourcePgAccounts(),
-			"huaweicloud_rds_mysql_databases":      rds.DataSourceRdsMysqlDatabases(),
-			"huaweicloud_rds_mysql_accounts":       rds.DataSourceRdsMysqlAccounts(),
-			"huaweicloud_rds_mysql_binlog":         rds.DataSourceRdsMysqlBinlog(),
-			"huaweicloud_rds_parametergroups":      rds.DataSourceParametergroups(),
+			"huaweicloud_rds_flavors":                       rds.DataSourceRdsFlavor(),
+			"huaweicloud_rds_engine_versions":               rds.DataSourceRdsEngineVersionsV3(),
+			"huaweicloud_rds_instances":                     rds.DataSourceRdsInstances(),
+			"huaweicloud_rds_backups":                       rds.DataSourceBackup(),
+			"huaweicloud_rds_storage_types":                 rds.DataSourceStoragetype(),
+			"huaweicloud_rds_sqlserver_collations":          rds.DataSourceSQLServerCollations(),
+			"huaweicloud_rds_sqlserver_databases":           rds.DataSourceSQLServerDatabases(),
+			"huaweicloud_rds_sqlserver_accounts":            rds.DataSourceRdsSQLServerAccounts(),
+			"huaweicloud_rds_sqlserver_database_privileges": rds.DataSourceSQLServerDatabasePrivileges(),
+			"huaweicloud_rds_pg_plugins":                    rds.DataSourcePgPlugins(),
+			"huaweicloud_rds_pg_accounts":                   rds.DataSourcePgAccounts(),
+			"huaweicloud_rds_pg_databases":                  rds.DataSourcePgDatabases(),
+			"huaweicloud_rds_mysql_databases":               rds.DataSourceRdsMysqlDatabases(),
+			"huaweicloud_rds_mysql_database_privileges":     rds.DataSourceRdsMysqlDatabasePrivileges(),
+			"huaweicloud_rds_mysql_accounts":                rds.DataSourceRdsMysqlAccounts(),
+			"huaweicloud_rds_mysql_binlog":                  rds.DataSourceRdsMysqlBinlog(),
+			"huaweicloud_rds_parametergroups":               rds.DataSourceParametergroups(),
 
 			"huaweicloud_rms_policy_definitions":           rms.DataSourcePolicyDefinitions(),
 			"huaweicloud_rms_assignment_package_templates": rms.DataSourceTemplates(),
@@ -899,6 +917,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_css_snapshot":      css.ResourceCssSnapshot(),
 			"huaweicloud_css_thesaurus":     css.ResourceCssthesaurus(),
 			"huaweicloud_css_configuration": css.ResourceCssConfiguration(),
+			"huaweicloud_css_scan_task":     css.ResourceScanTask(),
 
 			"huaweicloud_dbss_instance": dbss.ResourceInstance(),
 
@@ -909,6 +928,8 @@ func Provider() *schema.Provider {
 			"huaweicloud_dcs_instance":        dcs.ResourceDcsInstance(),
 			"huaweicloud_dcs_backup":          dcs.ResourceDcsBackup(),
 			"huaweicloud_dcs_custom_template": dcs.ResourceCustomTemplate(),
+			"huaweicloud_dcs_hotkey_analysis": dcs.ResourceHotKeyAnalysis(),
+			"huaweicloud_dcs_bigkey_analysis": dcs.ResourceBigKeyAnalysis(),
 
 			"huaweicloud_dds_database_role":      dds.ResourceDatabaseRole(),
 			"huaweicloud_dds_database_user":      dds.ResourceDatabaseUser(),
@@ -916,6 +937,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_dds_backup":             dds.ResourceDdsBackup(),
 			"huaweicloud_dds_parameter_template": dds.ResourceDdsParameterTemplate(),
 			"huaweicloud_dds_audit_log_policy":   dds.ResourceDdsAuditLogPolicy(),
+			"huaweicloud_dds_lts_log":            dds.ResourceDdsLtsLog(),
 
 			"huaweicloud_ddm_instance": ddm.ResourceDdmInstance(),
 			"huaweicloud_ddm_schema":   ddm.ResourceDdmSchema(),
@@ -924,6 +946,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_dis_stream": dis.ResourceDisStream(),
 
 			"huaweicloud_dli_database":              dli.ResourceDliSqlDatabaseV1(),
+			"huaweicloud_dli_elastic_resource_pool": dli.ResourceElasticResourcePool(),
 			"huaweicloud_dli_package":               dli.ResourceDliPackageV2(),
 			"huaweicloud_dli_queue":                 dli.ResourceDliQueue(),
 			"huaweicloud_dli_spark_job":             dli.ResourceDliSparkJobV2(),
@@ -968,14 +991,16 @@ func Provider() *schema.Provider {
 
 			"huaweicloud_drs_job": drs.ResourceDrsJob(),
 
-			"huaweicloud_dws_cluster":            dws.ResourceDwsCluster(),
-			"huaweicloud_dws_logical_cluster":    dws.ResourceLogicalCluster(),
-			"huaweicloud_dws_event_subscription": dws.ResourceDwsEventSubs(),
-			"huaweicloud_dws_alarm_subscription": dws.ResourceDwsAlarmSubs(),
-			"huaweicloud_dws_snapshot":           dws.ResourceDwsSnapshot(),
-			"huaweicloud_dws_snapshot_policy":    dws.ResourceDwsSnapshotPolicy(),
-			"huaweicloud_dws_ext_data_source":    dws.ResourceDwsExtDataSource(),
-			"huaweicloud_dws_workload_queue":     dws.ResourceWorkLoadQueue(),
+			"huaweicloud_dws_cluster":             dws.ResourceDwsCluster(),
+			"huaweicloud_dws_logical_cluster":     dws.ResourceLogicalCluster(),
+			"huaweicloud_dws_event_subscription":  dws.ResourceDwsEventSubs(),
+			"huaweicloud_dws_alarm_subscription":  dws.ResourceDwsAlarmSubs(),
+			"huaweicloud_dws_snapshot":            dws.ResourceDwsSnapshot(),
+			"huaweicloud_dws_snapshot_policy":     dws.ResourceDwsSnapshotPolicy(),
+			"huaweicloud_dws_ext_data_source":     dws.ResourceDwsExtDataSource(),
+			"huaweicloud_dws_workload_queue":      dws.ResourceWorkLoadQueue(),
+			"huaweicloud_dws_workload_plan":       dws.ResourceWorkLoadPlan(),
+			"huaweicloud_dws_workload_plan_stage": dws.ResourceWorkLoadPlanStage(),
 
 			"huaweicloud_eg_connection":           eg.ResourceConnection(),
 			"huaweicloud_eg_custom_event_channel": eg.ResourceCustomEventChannel(),
@@ -1014,6 +1039,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_fgs_dependency":                 fgs.ResourceFgsDependency(),
 			"huaweicloud_fgs_dependency_version":         fgs.ResourceDependencyVersion(),
 			"huaweicloud_fgs_function":                   fgs.ResourceFgsFunctionV2(),
+			"huaweicloud_fgs_function_event":             fgs.ResourceFunctionEvent(),
 			"huaweicloud_fgs_trigger":                    fgs.ResourceFunctionGraphTrigger(),
 
 			"huaweicloud_ga_accelerator":    ga.ResourceAccelerator(),
@@ -1062,6 +1088,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_identity_password_policy":       iam.ResourceIdentityPasswordPolicy(),
 			"huaweicloud_identity_protection_policy":     iam.ResourceIdentityProtectionPolicy(),
 			"huaweicloud_identity_virtual_mfa_device":    iam.ResourceIdentityVirtualMFADevice(),
+			"huaweicloud_identity_user_token":            iam.ResourceIdentityUserToken(),
 
 			"huaweicloud_identitycenter_user":                     identitycenter.ResourceIdentityCenterUser(),
 			"huaweicloud_identitycenter_group":                    identitycenter.ResourceIdentityCenterGroup(),
@@ -1301,6 +1328,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_vpc_bandwidth_associate": eip.ResourceBandWidthAssociate(),
 			"huaweicloud_vpc_eip":                 eip.ResourceVpcEIPV1(),
 			"huaweicloud_vpc_eip_associate":       eip.ResourceEIPAssociate(),
+			"huaweicloud_vpc_internet_gateway":    eip.ResourceVPCInternetGateway(),
 
 			"huaweicloud_global_internet_bandwidth": eip.ResourceGlobalInternetBandwidth(),
 			"huaweicloud_global_eip":                eip.ResourceGlobalEIP(),
@@ -1314,9 +1342,11 @@ func Provider() *schema.Provider {
 			"huaweicloud_vpc_address_group":               vpc.ResourceVpcAddressGroup(),
 			"huaweicloud_vpc_flow_log":                    vpc.ResourceVpcFlowLog(),
 			"huaweicloud_vpc_network_interface":           vpc.ResourceNetworkInterface(),
+			"huaweicloud_vpc_network_acl":                 vpc.ResourceNetworkAcl(),
 			"huaweicloud_vpc_sub_network_interface":       vpc.ResourceSubNetworkInterface(),
 			"huaweicloud_vpc_traffic_mirror_filter":       vpc.ResourceTrafficMirrorFilter(),
 			"huaweicloud_vpc_traffic_mirror_filter_rule":  vpc.ResourceTrafficMirrorFilterRule(),
+			"huaweicloud_vpc_traffic_mirror_session":      vpc.ResourceTrafficMirrorSession(),
 
 			"huaweicloud_vpcep_approval": vpcep.ResourceVPCEndpointApproval(),
 			"huaweicloud_vpcep_endpoint": vpcep.ResourceVPCEndpoint(),

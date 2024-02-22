@@ -17,6 +17,7 @@ import (
 
 	"github.com/chnsz/golangsdk"
 	"github.com/chnsz/golangsdk/openstack/common/tags"
+	"github.com/chnsz/golangsdk/openstack/eps/v1/enterpriseprojects"
 	"github.com/chnsz/golangsdk/openstack/mrs/v1/cluster"
 	clusterV2 "github.com/chnsz/golangsdk/openstack/mrs/v2/clusters"
 	"github.com/chnsz/golangsdk/openstack/networking/v1/eips"
@@ -52,6 +53,13 @@ type stateRefresh struct {
 	PollInterval time.Duration
 }
 
+// @API MRS GET /v1.1/{project_id}/clusters/{clusterId}/hosts
+// @API MRS DELETE /v1.1/{project_id}/clusters/{id}
+// @API MRS POST /v2/{project_id}/clusters
+// @API MRS POST /v1.1/{project_id}/{resourceType}/{id}/tags/action
+// @API MRS GET /v1.1/{project_id}/cluster_infos/{id}
+// @API MRS PUT /v1.1/{project_id}/cluster_infos/{id}
+// @API EIP GET /v1/{project_id}/publicips
 func ResourceMRSClusterV2() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMRSClusterV2Create,
@@ -126,7 +134,6 @@ func ResourceMRSClusterV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 			"eip_id": {
 				Type:     schema.TypeString,
@@ -1270,7 +1277,9 @@ func buildUpdateNameBodyParams(d *schema.ResourceData) map[string]interface{} {
 
 func resourceMRSClusterV2Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	cfg := meta.(*config.Config)
-	client, err := cfg.MrsV1Client(cfg.GetRegion(d))
+	region := cfg.GetRegion(d)
+	clusterId := d.Id()
+	client, err := cfg.MrsV1Client(region)
 	if err != nil {
 		return diag.Errorf("error creating MRS client: %s", err)
 	}
@@ -1283,9 +1292,21 @@ func resourceMRSClusterV2Update(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	if d.HasChange("tags") {
-		tagErr := updateResourceTagsWithSleep(client, d, "clusters", d.Id())
+		tagErr := updateResourceTagsWithSleep(client, d, "clusters", clusterId)
 		if tagErr != nil {
-			return diag.Errorf("error updating tags of MRS cluster:%s, err:%s", d.Id(), tagErr)
+			return diag.Errorf("error updating tags of MRS cluster:%s, err:%s", clusterId, tagErr)
+		}
+	}
+
+	if d.HasChange("enterprise_project_id") {
+		migrateOpts := enterpriseprojects.MigrateResourceOpts{
+			ResourceId:   clusterId,
+			ResourceType: "clusters",
+			RegionId:     region,
+			ProjectId:    client.ProjectID,
+		}
+		if err := common.MigrateEnterpriseProject(ctx, cfg, d, migrateOpts); err != nil {
+			return diag.FromErr(err)
 		}
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/chnsz/golangsdk/openstack/common/tags"
+	"github.com/chnsz/golangsdk/openstack/eps/v1/enterpriseprojects"
 	"github.com/chnsz/golangsdk/openstack/rds/v3/instances"
 
 	"github.com/huaweicloud/terraform-provider-huaweicloud/huaweicloud/common"
@@ -19,6 +20,26 @@ import (
 )
 
 // ResourceRdsReadReplicaInstance is the impl for huaweicloud_rds_read_replica_instance resource
+// @API RDS POST /v3/{project_id}/instances
+// @API RDS GET /v3/{project_id}/instances
+// @API RDS GET /v3/{project_id}/jobs
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/alias
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/port
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/security-group
+// @API RDS POST /v3/{project_id}/instances/{instance_id}/action
+// @API RDS POST /v3/{project_id}/instances/{id}/tags/action
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/ip
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/ssl
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/disk-auto-expansion
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/configurations
+// @API RDS GET /v3/{project_id}/instances/{instance_id}/disk-auto-expansion
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/name
+// @API RDS DELETE /v3/{project_id}/instances/{instance_id}
+// @API BSS GET /v2/orders/customer-orders/details/{order_id}
+// @API BSS POST /v2/orders/suscriptions/resources/query
+// @API BSS POST /v2/orders/subscriptions/resources/autorenew/{instance_id}
+// @API BSS DELETE /v2/orders/subscriptions/resources/autorenew/{instance_id}
+// @API BSS POST /v2/orders/subscriptions/resources/unsubscribe
 func ResourceRdsReadReplicaInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceRdsReadReplicaInstanceCreate,
@@ -99,7 +120,6 @@ func ResourceRdsReadReplicaInstance() *schema.Resource {
 			"enterprise_project_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 			},
 			"fixed_ip": {
@@ -311,7 +331,7 @@ func resourceRdsReadReplicaInstanceCreate(ctx context.Context, d *schema.Resourc
 	}
 
 	if v, ok := d.GetOk("volume.0.size"); ok && v.(int) != res.Volume.Size {
-		if err = updateRdsInstanceVolumeSize(ctx, d, client, instanceID); err != nil {
+		if err = updateRdsInstanceVolumeSize(ctx, d, config, client, instanceID); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -346,8 +366,11 @@ func resourceRdsReadReplicaInstanceCreate(ctx context.Context, d *schema.Resourc
 
 	// Set Parameters
 	if parametersRaw := d.Get("parameters").(*schema.Set); parametersRaw.Len() > 0 {
-		if err = initializeParameters(ctx, d.Timeout(schema.TimeoutCreate), client, instanceID,
-			parametersRaw); err != nil {
+		clientV31, err := config.RdsV31Client(config.GetRegion(d))
+		if err != nil {
+			return diag.Errorf("error creating RDS V3.1 client: %s", err)
+		}
+		if err = initializeParameters(ctx, d, client, clientV31, instanceID, parametersRaw); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -446,9 +469,14 @@ func resourceRdsReadReplicaInstanceRead(ctx context.Context, d *schema.ResourceD
 
 func resourceRdsReadReplicaInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*config.Config)
-	client, err := config.RdsV3Client(config.GetRegion(d))
+	region := config.GetRegion(d)
+	client, err := config.RdsV3Client(region)
 	if err != nil {
 		return diag.Errorf("error creating rds v3 client: %s ", err)
+	}
+	clientV31, err := config.RdsV31Client(config.GetRegion(d))
+	if err != nil {
+		return diag.Errorf("error creating RDS V3.1 client: %s", err)
 	}
 
 	instanceID := d.Id()
@@ -461,7 +489,7 @@ func resourceRdsReadReplicaInstanceUpdate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 
-	if err = updateRdsInstanceVolumeSize(ctx, d, client, instanceID); err != nil {
+	if err = updateRdsInstanceVolumeSize(ctx, d, config, client, instanceID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -489,7 +517,7 @@ func resourceRdsReadReplicaInstanceUpdate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 
-	if ctx, err = updateRdsParameters(ctx, d, client, instanceID); err != nil {
+	if ctx, err = updateRdsParameters(ctx, d, client, clientV31, instanceID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -501,6 +529,18 @@ func resourceRdsReadReplicaInstanceUpdate(ctx context.Context, d *schema.Resourc
 		tagErr := utils.UpdateResourceTags(client, d, "instances", instanceID)
 		if tagErr != nil {
 			return diag.Errorf("error updating tags of RDS read replica instance: %s, err: %s", instanceID, tagErr)
+		}
+	}
+
+	if d.HasChange("enterprise_project_id") {
+		migrateOpts := enterpriseprojects.MigrateResourceOpts{
+			ResourceId:   instanceID,
+			ResourceType: "rds",
+			RegionId:     region,
+			ProjectId:    client.ProjectID,
+		}
+		if err := common.MigrateEnterpriseProject(ctx, config, d, migrateOpts); err != nil {
+			return diag.FromErr(err)
 		}
 	}
 

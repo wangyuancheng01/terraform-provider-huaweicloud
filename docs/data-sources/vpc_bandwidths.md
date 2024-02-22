@@ -11,7 +11,7 @@ Use this data source to get a list of shared bandwidths.
 ### Example Usage of getting all bandwidths
 
 ```hcl
-data "huaweicloud_vpc_bandwidth" "all" {}
+data "huaweicloud_vpc_bandwidths" "all" {}
 ```
 
 ### Example Usage to filter specific bandwidths
@@ -19,7 +19,7 @@ data "huaweicloud_vpc_bandwidth" "all" {}
 ```hcl
 variable "bandwidth_name" {}
 
-data "huaweicloud_vpc_bandwidth" "filter_by_name" {
+data "huaweicloud_vpc_bandwidths" "filter_by_name" {
   name = var.bandwidth_name
 }
 ```
@@ -72,6 +72,10 @@ The `bandwidths` block supports:
 * `size` - Indicates the size of the bandwidth.
 
 * `status` - Indicates the status of the bandwidth.
+
+* `created_at` - Indicates the create time of the bandwidth.
+
+* `updated_at` - Indicates the update time of the bandwidth.
 
 <a name="attrblock--bandwidths--publicips"></a>
 The `publicips` block supports:

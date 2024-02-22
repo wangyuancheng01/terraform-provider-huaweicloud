@@ -8,6 +8,12 @@ host: huaweicloud.com
 tags:
     - name: Kafka
 paths:
+    /v2/{project_id}/instances/{instance_id}:
+        GET:
+            tag: Kafka
+    /v2/{project_id}/instances/{instance_id}/tasks:
+        GET:
+            tag: Kafka
     /v2/kafka/{project_id}/instances/{instance_id}/kafka-user-client-quota:
         DELETE:
             tag: Kafka
@@ -16,7 +22,4 @@ paths:
         POST:
             tag: Kafka
         PUT:
-            tag: Kafka
-    /v2/kafka/{project_id}/instances/{instance_id}/tasks:
-        GET:
             tag: Kafka

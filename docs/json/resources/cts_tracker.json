@@ -9,10 +9,21 @@
                 "type": "string",
                 "optional": true
               },
+              "compress_type": {
+                "type": "string",
+                "optional": true
+              },
               "enabled": {
                 "type": "bool",
                 "optional": true,
                 "default": true
+              },
+              "exclude_service": {
+                "type": [
+                  "set",
+                  "string"
+                ],
+                "optional": true
               },
               "file_prefix": {
                 "type": "string",
@@ -21,6 +32,11 @@
               "id": {
                 "type": "string",
                 "computed": true
+              },
+              "is_sort_by_service": {
+                "type": "bool",
+                "optional": true,
+                "default": true
               },
               "kms_id": {
                 "type": "string",
@@ -46,6 +62,13 @@
               "status": {
                 "type": "string",
                 "computed": true
+              },
+              "tags": {
+                "type": [
+                  "map",
+                  "string"
+                ],
+                "optional": true
               },
               "transfer_enabled": {
                 "type": "bool",

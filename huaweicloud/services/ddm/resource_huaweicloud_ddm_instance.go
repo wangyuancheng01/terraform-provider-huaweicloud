@@ -20,12 +20,22 @@ import (
 	"github.com/jmespath/go-jmespath"
 
 	"github.com/chnsz/golangsdk"
+	"github.com/chnsz/golangsdk/openstack/eps/v1/enterpriseprojects"
 
 	"github.com/huaweicloud/terraform-provider-huaweicloud/huaweicloud/common"
 	"github.com/huaweicloud/terraform-provider-huaweicloud/huaweicloud/config"
 	"github.com/huaweicloud/terraform-provider-huaweicloud/huaweicloud/utils"
 )
 
+// @API DDM POST /v2/{project_id}/instances/{instance_id}/action/enlarge
+// @API DDM POST /v2/{project_id}/instances/{instance_id}/action/reduce
+// @API DDM PUT /v3/{project_id}/instances/{instance_id}/admin-user
+// @API DDM PUT /v3/{project_id}/instances/{instance_id}/flavor
+// @API DDM POST /v1/{project_id}/instances
+// @API DDM GET /v1/{project_id}/instances/{instance_id}
+// @API DDM DELETE /v1/{project_id}/instances/{instance_id}
+// @API DDM PUT /v1/{project_id}/instances/{instance_id}/modify-name
+// @API DDM PUT /v1/{project_id}/instances/{instance_id}/modify-security-group
 func ResourceDdmInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDdmInstanceCreate,
@@ -104,7 +114,6 @@ func ResourceDdmInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-				ForceNew:    true,
 				Description: `Specifies the enterprise project id.`,
 			},
 			"param_group_id": {
@@ -335,6 +344,7 @@ func buildCreateInstanceExtendParamChildBody(d *schema.ResourceData) map[string]
 func resourceDdmInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	cfg := meta.(*config.Config)
 	region := cfg.GetRegion(d)
+	instanceId := d.Id()
 
 	if d.HasChange("name") {
 		err := updateInstanceName(ctx, d, cfg, region)
@@ -376,10 +386,23 @@ func resourceDdmInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta
 		if err != nil {
 			return diag.Errorf("error creating BSS V2 client: %s", err)
 		}
-		if err = common.UpdateAutoRenew(bssClient, d.Get("auto_renew").(string), d.Id()); err != nil {
-			return diag.Errorf("error updating the auto-renew of the DDM instance (%s): %s", d.Id(), err)
+		if err = common.UpdateAutoRenew(bssClient, d.Get("auto_renew").(string), instanceId); err != nil {
+			return diag.Errorf("error updating the auto-renew of the DDM instance (%s): %s", instanceId, err)
 		}
 	}
+
+	if d.HasChange("enterprise_project_id") {
+		migrateOpts := enterpriseprojects.MigrateResourceOpts{
+			ResourceId:   instanceId,
+			ResourceType: "ddm",
+			RegionId:     region,
+			ProjectId:    cfg.GetProjectID(region),
+		}
+		if err := common.MigrateEnterpriseProject(ctx, cfg, d, migrateOpts); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return resourceDdmInstanceRead(ctx, d, meta)
 }
 

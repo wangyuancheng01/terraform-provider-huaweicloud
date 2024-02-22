@@ -18,6 +18,10 @@ import (
 	"github.com/huaweicloud/terraform-provider-huaweicloud/huaweicloud/utils"
 )
 
+// @API NAT POST /v2/{project_id}/dnat_rules
+// @API NAT GET /v2/{project_id}/dnat_rules/{dnat_rule_id}
+// @API NAT PUT /v2/{project_id}/dnat_rules/{dnat_rule_id}
+// @API NAT DELETE /v2/{project_id}/nat_gateways/{nat_gateway_id}/dnat_rules/{dnat_rule_id}
 func ResourcePublicDnatRule() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourcePublicDnatRuleCreate,

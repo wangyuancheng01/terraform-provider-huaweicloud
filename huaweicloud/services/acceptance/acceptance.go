@@ -147,9 +147,10 @@ var (
 	HW_RF_VARIABLES_ARCHIVE_URI = os.Getenv("HW_RF_VARIABLES_ARCHIVE_URI")
 
 	// The direct connection ID (provider does not support direct connection resource).
-	HW_DC_DIRECT_CONNECT_ID  = os.Getenv("HW_DC_DIRECT_CONNECT_ID")
-	HW_DC_RESOURCE_TENANT_ID = os.Getenv("HW_DC_RESOURCE_TENANT_ID")
-	HW_DC_HOSTTING_ID        = os.Getenv("HW_DC_HOSTTING_ID")
+	HW_DC_DIRECT_CONNECT_ID    = os.Getenv("HW_DC_DIRECT_CONNECT_ID")
+	HW_DC_RESOURCE_TENANT_ID   = os.Getenv("HW_DC_RESOURCE_TENANT_ID")
+	HW_DC_HOSTTING_ID          = os.Getenv("HW_DC_HOSTTING_ID")
+	HW_DC_TARGET_TENANT_VGW_ID = os.Getenv("HW_DC_TARGET_TENANT_VGW_ID")
 
 	// The CFW instance ID
 	HW_CFW_INSTANCE_ID        = os.Getenv("HW_CFW_INSTANCE_ID")
@@ -244,7 +245,8 @@ var (
 
 	HW_CERT_BATCH_PUSH_ID = os.Getenv("HW_CERT_BATCH_PUSH_ID")
 
-	HW_AS_SCALING_GROUP_ID = os.Getenv("HW_AS_SCALING_GROUP_ID")
+	HW_AS_SCALING_GROUP_ID  = os.Getenv("HW_AS_SCALING_GROUP_ID")
+	HW_AS_SCALING_POLICY_ID = os.Getenv("HW_AS_SCALING_POLICY_ID")
 
 	HW_DATAARTS_WORKSPACE_ID            = os.Getenv("HW_DATAARTS_WORKSPACE_ID")
 	HW_DATAARTS_CDM_NAME                = os.Getenv("HW_DATAARTS_CDM_NAME")
@@ -859,6 +861,20 @@ func TestAccPreCheckDcHostedConnection(t *testing.T) {
 }
 
 // lintignore:AT003
+func TestAccPreCheckDcResourceTenant(t *testing.T) {
+	if HW_DC_RESOURCE_TENANT_ID == "" {
+		t.Skip("HW_DC_RESOURCE_TENANT_ID must be set for this acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckTargetTenantDcVGW(t *testing.T) {
+	if HW_DC_TARGET_TENANT_VGW_ID == "" {
+		t.Skip("HW_DC_TARGET_TENANT_VGW_ID must be set for this acceptance test")
+	}
+}
+
+// lintignore:AT003
 func TestAccPreCheckCfw(t *testing.T) {
 	if HW_CFW_INSTANCE_ID == "" {
 		t.Skip("HW_CFW_INSTANCE_ID must be set for CFW acceptance tests")
@@ -1144,6 +1160,13 @@ func TestAccPreCheckCCAuth(t *testing.T) {
 func TestAccPreCheckASScalingGroupID(t *testing.T) {
 	if HW_AS_SCALING_GROUP_ID == "" {
 		t.Skip("HW_AS_SCALING_GROUP_ID must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckASScalingPolicyID(t *testing.T) {
+	if HW_AS_SCALING_POLICY_ID == "" {
+		t.Skip("HW_AS_SCALING_POLICY_ID must be set for the acceptance test")
 	}
 }
 

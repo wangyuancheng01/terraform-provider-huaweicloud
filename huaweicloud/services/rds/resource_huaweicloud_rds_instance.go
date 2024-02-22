@@ -15,6 +15,7 @@ import (
 	"github.com/chnsz/golangsdk"
 	"github.com/chnsz/golangsdk/openstack/bss/v2/orders"
 	"github.com/chnsz/golangsdk/openstack/common/tags"
+	"github.com/chnsz/golangsdk/openstack/eps/v1/enterpriseprojects"
 	"github.com/chnsz/golangsdk/openstack/rds/v3/backups"
 	"github.com/chnsz/golangsdk/openstack/rds/v3/instances"
 	"github.com/chnsz/golangsdk/openstack/rds/v3/securities"
@@ -28,6 +29,33 @@ import (
 type ctxType string
 
 // ResourceRdsInstance is the impl for huaweicloud_rds_instance resource
+// @API RDS POST /v3/{project_id}/instances
+// @API RDS GET /v3/{project_id}/jobs
+// @API RDS GET /v3/{project_id}/instances
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/alias
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/ssl
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/ops-window
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/failover/strategy
+// @API RDS POST /v3/{project_id}/instances/{id}/tags/action
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/configurations
+// @API RDS POST /v3/{project_id}/instances/{instance_id}/action
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/disk-auto-expansion
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/backups/policy
+// @API RDS GET /v3/{project_id}/instances/{instance_id}/disk-auto-expansion
+// @API RDS GET /v3/{project_id}/instances/{instance_id}/backups/policy
+// @API RDS GET /v3/{project_id}/instances/{instance_id}/configurations
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/name
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/failover/mode
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/collations
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/port
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/ip
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/security-group
+// @API RDS POST /v3/{project_id}/instances/{instance_id}/password
+// @API RDS DELETE /v3/{project_id}/instances/{instance_id}
+// @API BSS GET /v2/orders/customer-orders/details/{order_id}
+// @API BSS POST /v2/orders/subscriptions/resources/autorenew/{instance_id}
+// @API BSS DELETE /v2/orders/subscriptions/resources/autorenew/{instance_id}
+// @API BSS POST /v2/orders/subscriptions/resources/unsubscribe
 func ResourceRdsInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceRdsInstanceCreate,
@@ -216,7 +244,6 @@ func ResourceRdsInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"fixed_ip": {
@@ -511,7 +538,11 @@ func resourceRdsInstanceCreate(ctx context.Context, d *schema.ResourceData, meta
 
 	// Set Parameters
 	if parameters := d.Get("parameters").(*schema.Set); parameters.Len() > 0 {
-		if err = initializeParameters(ctx, d.Timeout(schema.TimeoutCreate), client, instanceID, parameters); err != nil {
+		clientV31, err := config.RdsV31Client(config.GetRegion(d))
+		if err != nil {
+			return diag.Errorf("error creating RDS V3.1 client: %s", err)
+		}
+		if err = initializeParameters(ctx, d, client, clientV31, instanceID, parameters); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -698,9 +729,14 @@ func setRdsInstanceParameters(ctx context.Context, d *schema.ResourceData, clien
 
 func resourceRdsInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	config := meta.(*config.Config)
-	client, err := config.RdsV3Client(config.GetRegion(d))
+	region := config.GetRegion(d)
+	client, err := config.RdsV3Client(region)
 	if err != nil {
 		return diag.Errorf("error creating RDS Client: %s", err)
+	}
+	clientV31, err := config.RdsV31Client(config.GetRegion(d))
+	if err != nil {
+		return diag.Errorf("error creating RDS V3.1 client: %s", err)
 	}
 
 	instanceID := d.Id()
@@ -717,7 +753,7 @@ func resourceRdsInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	if err := updateRdsInstanceVolumeSize(ctx, d, client, instanceID); err != nil {
+	if err := updateRdsInstanceVolumeSize(ctx, d, config, client, instanceID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -773,12 +809,24 @@ func resourceRdsInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta
 		if err != nil {
 			return diag.Errorf("error creating BSS V2 client: %s", err)
 		}
-		if err = common.UpdateAutoRenew(bssClient, d.Get("auto_renew").(string), d.Id()); err != nil {
-			return diag.Errorf("error updating the auto-renew of the instance (%s): %s", d.Id(), err)
+		if err = common.UpdateAutoRenew(bssClient, d.Get("auto_renew").(string), instanceID); err != nil {
+			return diag.Errorf("error updating the auto-renew of the instance (%s): %s", instanceID, err)
 		}
 	}
 
-	if ctx, err = updateRdsParameters(ctx, d, client, instanceID); err != nil {
+	if d.HasChange("enterprise_project_id") {
+		migrateOpts := enterpriseprojects.MigrateResourceOpts{
+			ResourceId:   instanceID,
+			ResourceType: "rds",
+			RegionId:     region,
+			ProjectId:    client.ProjectID,
+		}
+		if err := common.MigrateEnterpriseProject(ctx, config, d, migrateOpts); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if ctx, err = updateRdsParameters(ctx, d, client, clientV31, instanceID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -984,25 +1032,12 @@ func buildRdsInstanceParameters(params *schema.Set) instances.ModifyConfiguratio
 	return configOpts
 }
 
-func initializeParameters(ctx context.Context, timeout time.Duration, client *golangsdk.ServiceClient,
+func initializeParameters(ctx context.Context, d *schema.ResourceData, client, clientV31 *golangsdk.ServiceClient,
 	instanceID string, parametersRaw *schema.Set) error {
 	configOpts := buildRdsInstanceParameters(parametersRaw)
-	retryFunc := func() (interface{}, bool, error) {
-		_, err := instances.ModifyConfiguration(client, instanceID, configOpts).Extract()
-		retry, err := handleMultiOperationsError(err)
-		return nil, retry, err
-	}
-	_, err := common.RetryContextWithWaitForState(&common.RetryContextWithWaitForStateParam{
-		Ctx:          ctx,
-		RetryFunc:    retryFunc,
-		WaitFunc:     rdsInstanceStateRefreshFunc(client, instanceID),
-		WaitTarget:   []string{"ACTIVE"},
-		Timeout:      timeout,
-		DelayTimeout: 10 * time.Second,
-		PollInterval: 10 * time.Second,
-	})
+	err := modifyParameters(ctx, d, client, clientV31, instanceID, &configOpts)
 	if err != nil {
-		return fmt.Errorf("error modifying parameters for RDS instance (%s): %s", instanceID, err)
+		return err
 	}
 
 	// Check if we need to restart
@@ -1012,7 +1047,7 @@ func initializeParameters(ctx context.Context, timeout time.Duration, client *go
 	}
 
 	if restart {
-		return restartRdsInstance(ctx, timeout, client, instanceID)
+		return restartRdsInstance(ctx, d.Timeout(schema.TimeoutCreate), client, instanceID)
 	}
 	return nil
 }
@@ -1162,7 +1197,7 @@ func updateRdsInstanceFlavor(ctx context.Context, d *schema.ResourceData, cfg *c
 	return nil
 }
 
-func updateRdsInstanceVolumeSize(ctx context.Context, d *schema.ResourceData, client *golangsdk.ServiceClient,
+func updateRdsInstanceVolumeSize(ctx context.Context, d *schema.ResourceData, cfg *config.Config, client *golangsdk.ServiceClient,
 	instanceID string) error {
 	if !d.HasChange("volume.0.size") {
 		return nil
@@ -1172,7 +1207,8 @@ func updateRdsInstanceVolumeSize(ctx context.Context, d *schema.ResourceData, cl
 	volumeItem := volumeRaw[0].(map[string]interface{})
 	enlargeOpts := instances.EnlargeVolumeOpts{
 		EnlargeVolume: &instances.EnlargeVolumeSize{
-			Size: volumeItem["size"].(int),
+			Size:      volumeItem["size"].(int),
+			IsAutoPay: true,
 		},
 	}
 
@@ -1197,8 +1233,33 @@ func updateRdsInstanceVolumeSize(ctx context.Context, d *schema.ResourceData, cl
 	}
 
 	instance := r.(*instances.EnlargeVolumeResp)
-	if err := checkRDSInstanceJobFinish(client, instance.JobId, d.Timeout(schema.TimeoutUpdate)); err != nil {
-		return fmt.Errorf("error updating instance (%s): %s", instanceID, err)
+	// wait for order success
+	if instance.OrderId != "" {
+		bssClient, err := cfg.BssV2Client(cfg.GetRegion(d))
+		if err != nil {
+			return fmt.Errorf("error creating BSS V2 client: %s", err)
+		}
+		if err := orders.WaitForOrderSuccess(bssClient, int(d.Timeout(schema.TimeoutUpdate)/time.Second),
+			instance.OrderId); err != nil {
+			return fmt.Errorf("error waiting for RDS order %s succuss: %s", instance.OrderId, err)
+		}
+	}
+
+	if instance.JobId != "" {
+		if err := checkRDSInstanceJobFinish(client, instance.JobId, d.Timeout(schema.TimeoutUpdate)); err != nil {
+			return fmt.Errorf("error updating instance (%s): %s", instanceID, err)
+		}
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Target:       []string{"ACTIVE"},
+		Refresh:      rdsInstanceStateRefreshFunc(client, instanceID),
+		Timeout:      d.Timeout(schema.TimeoutUpdate),
+		Delay:        1 * time.Second,
+		PollInterval: 10 * time.Second,
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("error waiting for instance (%s) volume size to be updated: %s", instanceID, err)
 	}
 
 	return nil
@@ -1355,12 +1416,12 @@ func updateRdsInstanceSSLConfig(ctx context.Context, d *schema.ResourceData, cli
 	return configRdsInstanceSSL(ctx, d, client, instanceID)
 }
 
-func updateRdsParameters(ctx context.Context, d *schema.ResourceData, client *golangsdk.ServiceClient,
+func updateRdsParameters(ctx context.Context, d *schema.ResourceData, client, clientV31 *golangsdk.ServiceClient,
 	instanceID string) (context.Context, error) {
-	values := make(map[string]string)
 	if !d.HasChange("parameters") {
 		return ctx, nil
 	}
+	values := make(map[string]string)
 
 	o, n := d.GetChange("parameters")
 	os, ns := o.(*schema.Set), n.(*schema.Set)
@@ -1375,22 +1436,9 @@ func updateRdsParameters(ctx context.Context, d *schema.ResourceData, client *go
 		configOpts := instances.ModifyConfigurationOpts{
 			Values: values,
 		}
-		retryFunc := func() (interface{}, bool, error) {
-			_, err := instances.ModifyConfiguration(client, instanceID, configOpts).Extract()
-			retry, err := handleMultiOperationsError(err)
-			return nil, retry, err
-		}
-		_, err := common.RetryContextWithWaitForState(&common.RetryContextWithWaitForStateParam{
-			Ctx:          ctx,
-			RetryFunc:    retryFunc,
-			WaitFunc:     rdsInstanceStateRefreshFunc(client, instanceID),
-			WaitTarget:   []string{"ACTIVE"},
-			Timeout:      d.Timeout(schema.TimeoutUpdate),
-			DelayTimeout: 10 * time.Second,
-			PollInterval: 10 * time.Second,
-		})
+		err := modifyParameters(ctx, d, client, clientV31, instanceID, &configOpts)
 		if err != nil {
-			return ctx, fmt.Errorf("error modifying parameters for RDS instance (%s): %s", instanceID, err)
+			return ctx, nil
 		}
 	}
 
@@ -1398,6 +1446,70 @@ func updateRdsParameters(ctx context.Context, d *schema.ResourceData, client *go
 	ctx = context.WithValue(ctx, ctxType("parametersChanged"), "true")
 
 	return ctx, nil
+}
+
+func modifyParameters(ctx context.Context, d *schema.ResourceData, client, clientV31 *golangsdk.ServiceClient,
+	instanceID string, configOpts *instances.ModifyConfigurationOpts) error {
+	modifyApiClient := &clientV31
+	retryFunc := func() (interface{}, bool, error) {
+		_, err := instances.ModifyConfiguration(*modifyApiClient, instanceID, *configOpts).Extract()
+		// if the api is not exists, the v3 client should be used
+		if apiNotExists := handleApiNotExistsError(err); apiNotExists {
+			modifyApiClient = &client
+			_, err = instances.ModifyConfiguration(*modifyApiClient, instanceID, *configOpts).Extract()
+		}
+		retry, err := handleMultiOperationsError(err)
+		return nil, retry, err
+	}
+	_, err := common.RetryContextWithWaitForState(&common.RetryContextWithWaitForStateParam{
+		Ctx:          ctx,
+		RetryFunc:    retryFunc,
+		WaitFunc:     rdsInstanceStateRefreshFunc(client, instanceID),
+		WaitTarget:   []string{"ACTIVE"},
+		Timeout:      d.Timeout(schema.TimeoutUpdate),
+		DelayTimeout: 10 * time.Second,
+		PollInterval: 10 * time.Second,
+	})
+	if err != nil && !handleTimeoutError(err) {
+		return fmt.Errorf("error modifying parameters for RDS instance (%s): %s", instanceID, err)
+	}
+
+	return checkParameterUpdateCompleted(ctx, d, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+}
+
+func checkParameterUpdateCompleted(ctx context.Context, d *schema.ResourceData, client *golangsdk.ServiceClient,
+	instanceID string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending:      []string{"PENDING"},
+		Target:       []string{"SUCCESS"},
+		Refresh:      rdsInstanceParamRefreshFunc(client, d, instanceID),
+		Timeout:      timeout,
+		Delay:        2 * time.Second,
+		PollInterval: 2 * time.Second,
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("error waiting for RDS instance (%s) parameter to be updated: %s ", instanceID, err)
+	}
+	return nil
+}
+
+func rdsInstanceParamRefreshFunc(client *golangsdk.ServiceClient, d *schema.ResourceData, instanceID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		configs, err := instances.GetConfigurations(client, instanceID).Extract()
+		if err != nil {
+			return nil, "ERROR", err
+		}
+		for _, parameter := range d.Get("parameters").(*schema.Set).List() {
+			name := parameter.(map[string]interface{})["name"]
+			value := parameter.(map[string]interface{})["value"]
+			for _, v := range configs.Parameters {
+				if v.Name == name && v.Value != value {
+					return configs, "PENDING", nil
+				}
+			}
+		}
+		return configs, "SUCCESS", nil
+	}
 }
 
 func updateVolumeAutoExpand(ctx context.Context, d *schema.ResourceData, client *golangsdk.ServiceClient,

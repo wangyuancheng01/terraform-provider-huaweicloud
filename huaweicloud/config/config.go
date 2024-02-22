@@ -509,6 +509,10 @@ func (c *Config) IAMNoVersionClient(region string) (*golangsdk.ServiceClient, er
 	return c.NewServiceClient("iam_no_version", region)
 }
 
+func (c *Config) IdentityV3ExtClient(region string) (*golangsdk.ServiceClient, error) {
+	return c.NewServiceClient("identity_ext", region)
+}
+
 func (c *Config) CdnV1Client(region string) (*golangsdk.ServiceClient, error) {
 	return c.NewServiceClient("cdn", region)
 }
@@ -897,6 +901,10 @@ func (c *Config) RdsV1Client(region string) (*golangsdk.ServiceClient, error) {
 
 func (c *Config) RdsV3Client(region string) (*golangsdk.ServiceClient, error) {
 	return c.NewServiceClient("rds", region)
+}
+
+func (c *Config) RdsV31Client(region string) (*golangsdk.ServiceClient, error) {
+	return c.NewServiceClient("rdsv31", region)
 }
 
 func (c *Config) DdsV3Client(region string) (*golangsdk.ServiceClient, error) {

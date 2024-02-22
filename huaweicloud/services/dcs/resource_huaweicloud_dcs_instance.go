@@ -25,6 +25,7 @@ import (
 	"github.com/chnsz/golangsdk/openstack/dcs/v2/instances"
 	dcsTags "github.com/chnsz/golangsdk/openstack/dcs/v2/tags"
 	"github.com/chnsz/golangsdk/openstack/dcs/v2/whitelists"
+	"github.com/chnsz/golangsdk/openstack/eps/v1/enterpriseprojects"
 
 	"github.com/huaweicloud/terraform-provider-huaweicloud/huaweicloud/common"
 	"github.com/huaweicloud/terraform-provider-huaweicloud/huaweicloud/config"
@@ -53,6 +54,8 @@ var (
 	operateErrorCode = map[string]bool{
 		// current state not support
 		"DCS.4026": true,
+		// instance status is not running
+		"DCS.4049": true,
 		// backup
 		"DCS.4096": true,
 		// restore
@@ -76,6 +79,21 @@ var (
 	}
 )
 
+// @API DCS PUT /v2/{project_id}/instances/{id}/password
+// @API DCS GET /v2/{project_id}/instances/{instancesId}/configs
+// @API DCS PUT /v2/{project_id}/instances/{instancesId}/configs
+// @API DCS GET /v2/available-zones
+// @API DCS PUT /v2/{project_id}/instances/status
+// @API DCS GET /v2/{project_id}/flavors
+// @API DCS GET /v2/{project_id}/instance/{id}/whitelist
+// @API DCS PUT /v2/{project_id}/instance/{id}/whitelist
+// @API DCS POST /v2/{project_id}/instances/{id}/resize
+// @API DCS DELETE /v2/{project_id}/instances/{id}
+// @API DCS GET /v2/{project_id}/instances/{id}
+// @API DCS PUT /v2/{project_id}/instances/{id}
+// @API DCS POST /v2/{project_id}/instances
+// @API DCS GET /v2/{project_id}/instances/{id}/tags
+// @API DCS POST /v2/{project_id}/dcs/{id}/tags/action
 func ResourceDcsInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDcsInstancesCreate,
@@ -264,7 +282,6 @@ func ResourceDcsInstance() *schema.Resource {
 			"enterprise_project_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 			},
 			"parameters": {
@@ -1009,7 +1026,9 @@ func generateParametersMap(configurations *instances.Configuration) map[string]i
 
 func resourceDcsInstancesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	cfg := meta.(*config.Config)
-	client, err := cfg.DcsV2Client(cfg.GetRegion(d))
+	region := cfg.GetRegion(d)
+	instanceId := d.Id()
+	client, err := cfg.DcsV2Client(region)
 	if err != nil {
 		return diag.Errorf("error creating DCS Client(v2): %s", err)
 	}
@@ -1032,7 +1051,7 @@ func resourceDcsInstancesUpdate(ctx context.Context, d *schema.ResourceData, met
 		}
 		log.Printf("[DEBUG] Update DCS instance options : %#v", opts)
 
-		_, err = instances.Update(client, d.Id(), opts)
+		_, err = instances.Update(client, instanceId, opts)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1052,7 +1071,7 @@ func resourceDcsInstancesUpdate(ctx context.Context, d *schema.ResourceData, met
 			NewPassword: newVal.(string),
 		}
 		err = resource.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			_, err = instances.UpdatePassword(client, d.Id(), opts)
+			_, err = instances.UpdatePassword(client, instanceId, opts)
 			isRetry, err := handleOperationError(err)
 			if isRetry {
 				return resource.RetryableError(err)
@@ -1076,7 +1095,7 @@ func resourceDcsInstancesUpdate(ctx context.Context, d *schema.ResourceData, met
 	// update tags
 	if d.HasChange("tags") {
 		oldVal, newVal := d.GetChange("tags")
-		err = updateDcsTags(client, d.Id(), oldVal.(map[string]interface{}), newVal.(map[string]interface{}))
+		err = updateDcsTags(client, instanceId, oldVal.(map[string]interface{}), newVal.(map[string]interface{}))
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1087,9 +1106,9 @@ func resourceDcsInstancesUpdate(ctx context.Context, d *schema.ResourceData, met
 		whitelistOpts := buildWhiteListParams(d)
 		log.Printf("[DEBUG] Update DCS instance whitelist options: %#v", whitelistOpts)
 
-		err = whitelists.Put(client, d.Id(), whitelistOpts).ExtractErr()
+		err = whitelists.Put(client, instanceId, whitelistOpts).ExtractErr()
 		if err != nil {
-			return diag.Errorf("error updating whitelist for instance (%s): %s", d.Id(), err)
+			return diag.Errorf("error updating whitelist for instance (%s): %s", instanceId, err)
 		}
 
 		// wait for whitelist updated
@@ -1100,24 +1119,36 @@ func resourceDcsInstancesUpdate(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	if d.HasChange("auto_renew") {
-		bssClient, err := cfg.BssV2Client(cfg.GetRegion(d))
+		bssClient, err := cfg.BssV2Client(region)
 		if err != nil {
 			return diag.Errorf("error creating BSS V2 client: %s", err)
 		}
-		if err = common.UpdateAutoRenew(bssClient, d.Get("auto_renew").(string), d.Id()); err != nil {
-			return diag.Errorf("error updating the auto-renew of the instance (%s): %s", d.Id(), err)
+		if err = common.UpdateAutoRenew(bssClient, d.Get("auto_renew").(string), instanceId); err != nil {
+			return diag.Errorf("error updating the auto-renew of the instance (%s): %s", instanceId, err)
 		}
 	}
 
 	if d.HasChange("parameters") {
 		oRaw, nRaw := d.GetChange("parameters")
 		changedParameters := nRaw.(*schema.Set).Difference(oRaw.(*schema.Set)).List()
-		err = updateParameters(ctx, d.Timeout(schema.TimeoutUpdate), client, d.Id(), changedParameters)
+		err = updateParameters(ctx, d.Timeout(schema.TimeoutUpdate), client, instanceId, changedParameters)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		// Sending parametersChanged to Read to warn users the instance needs a reboot.
 		ctx = context.WithValue(ctx, ctxType("parametersChanged"), "true")
+	}
+
+	if d.HasChange("enterprise_project_id") {
+		migrateOpts := enterpriseprojects.MigrateResourceOpts{
+			ResourceId:   instanceId,
+			ResourceType: "dcs",
+			RegionId:     region,
+			ProjectId:    client.ProjectID,
+		}
+		if err := common.MigrateEnterpriseProject(ctx, cfg, d, migrateOpts); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return resourceDcsInstancesRead(ctx, d, meta)
@@ -1325,24 +1356,8 @@ func handleOperationError(err error) (bool, error) {
 		if errorCodeErr != nil {
 			return false, fmt.Errorf("error parse errorCode from response body: %s", errorCodeErr)
 		}
-		if operateErrorCode[errorCode.(string)] {
-			return true, err
-		}
-	}
-	// unsubscribe fail
-	if errCode, ok := err.(golangsdk.ErrDefault400); ok {
-		var apiError interface{}
-		if jsonErr := json.Unmarshal(errCode.Body, &apiError); jsonErr != nil {
-			return false, fmt.Errorf("unmarshal the response body failed: %s", jsonErr)
-		}
-
-		errorCode, errorCodeErr := jmespath.Search("error_code", apiError)
-		if errorCodeErr != nil {
-			return false, fmt.Errorf("error parse errorCode from response body: %s", errorCodeErr)
-		}
-
 		// CBC.99003651: Another operation is being performed.
-		if errorCode == "CBC.99003651" {
+		if operateErrorCode[errorCode.(string)] || errorCode == "CBC.99003651" {
 			return true, err
 		}
 	}

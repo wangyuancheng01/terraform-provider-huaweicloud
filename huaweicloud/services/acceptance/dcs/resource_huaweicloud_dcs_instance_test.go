@@ -65,7 +65,7 @@ func TestAccDcsInstances_basic(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_updated(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
@@ -128,7 +128,7 @@ func TestAccDcsInstances_ha_change_capacity(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_ha_expand_capacity(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "4"),
@@ -139,7 +139,7 @@ func TestAccDcsInstances_ha_change_capacity(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_ha_reduce_capacity(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
@@ -196,7 +196,7 @@ func TestAccDcsInstances_ha_expand_replica(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_ha_expand_replica(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
@@ -253,7 +253,7 @@ func TestAccDcsInstances_ha_to_proxy(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_ha_to_proxy(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "4"),
@@ -310,7 +310,7 @@ func TestAccDcsInstances_rw_change_capacity(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_rw_expand_capacity(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "16"),
@@ -321,7 +321,7 @@ func TestAccDcsInstances_rw_change_capacity(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_rw_reduce_capacity(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "8"),
@@ -378,7 +378,7 @@ func TestAccDcsInstances_rw_expand_replica(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_rw_expand_replica(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "8"),
@@ -435,7 +435,7 @@ func TestAccDcsInstances_rw_to_proxy(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_rw_to_proxy(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "8"),
@@ -492,7 +492,7 @@ func TestAccDcsInstances_proxy_change_capacity(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_proxy_expand_capacity(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "16"),
@@ -503,7 +503,7 @@ func TestAccDcsInstances_proxy_change_capacity(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_proxy_reduce_capacity(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "8"),
@@ -560,7 +560,7 @@ func TestAccDcsInstances_proxy_to_ha(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_proxy_to_ha(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "4"),
@@ -617,7 +617,7 @@ func TestAccDcsInstances_proxy_to_rw(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_proxy_to_rw(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "8"),
@@ -674,7 +674,7 @@ func TestAccDcsInstances_cluster_change_capacity(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_cluster_expand_capacity(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "8"),
@@ -685,7 +685,7 @@ func TestAccDcsInstances_cluster_change_capacity(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_cluster_reduce_capacity(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "4"),
@@ -742,7 +742,7 @@ func TestAccDcsInstances_cluster_expand_replica(t *testing.T) {
 			{
 				Config: testAccDcsV1Instance_cluster_expand_replica(instanceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "port", "6389"),
+					resource.TestCheckResourceAttr(resourceName, "port", "6388"),
 					resource.TestCheckResourceAttrPair(resourceName, "flavor",
 						"data.huaweicloud_dcs_flavors.test", "flavors.0.name"),
 					resource.TestCheckResourceAttr(resourceName, "capacity", "4"),
@@ -775,18 +775,27 @@ func TestAccDcsInstances_withEpsId(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acceptance.TestAccPreCheck(t)
-			acceptance.TestAccPreCheckEpsID(t)
+			acceptance.TestAccPreCheckMigrateEpsID(t)
 		},
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      rc.CheckResourceDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDcsV1Instance_epsId(instanceName),
+				Config: testAccDcsV1Instance_epsId(instanceName, acceptance.HW_ENTERPRISE_PROJECT_ID_TEST),
 				Check: resource.ComposeTestCheckFunc(
 					rc.CheckResourceExists(),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "enterprise_project_id",
 						acceptance.HW_ENTERPRISE_PROJECT_ID_TEST),
+				),
+			},
+			{
+				Config: testAccDcsV1Instance_epsId(instanceName, acceptance.HW_ENTERPRISE_MIGRATE_PROJECT_ID_TEST),
+				Check: resource.ComposeTestCheckFunc(
+					rc.CheckResourceExists(),
+					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "enterprise_project_id",
+						acceptance.HW_ENTERPRISE_MIGRATE_PROJECT_ID_TEST),
 				),
 			},
 		},
@@ -1028,7 +1037,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 1
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1125,7 +1134,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 4
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1160,7 +1169,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 1
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1195,7 +1204,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 1
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1230,7 +1239,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 4
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1300,7 +1309,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 16
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1335,7 +1344,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 8
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1370,7 +1379,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 8
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1405,7 +1414,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 8
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1475,7 +1484,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 16
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1510,7 +1519,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test_update"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 8
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1545,7 +1554,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 4
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1580,7 +1589,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 8
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1650,7 +1659,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 8
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1685,7 +1694,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 4
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1720,7 +1729,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
   engine_version     = "5.0"
   password           = "Huawei_test"
   engine             = "Redis"
-  port               = 6389
+  port               = 6388
   capacity           = 4
   vpc_id             = data.huaweicloud_vpc.test.id
   subnet_id          = data.huaweicloud_vpc_subnet.test.id
@@ -1731,7 +1740,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
 }`, instanceName)
 }
 
-func testAccDcsV1Instance_epsId(instanceName string) string {
+func testAccDcsV1Instance_epsId(instanceName, epsId string) string {
 	return fmt.Sprintf(`
 data "huaweicloud_availability_zones" "test" {}
 
@@ -1767,7 +1776,7 @@ resource "huaweicloud_dcs_instance" "instance_1" {
     save_days   = 1
   }
   enterprise_project_id = "%s"
-}`, instanceName, acceptance.HW_ENTERPRISE_PROJECT_ID_TEST)
+}`, instanceName, epsId)
 }
 
 func testAccDcsV1Instance_tiny(instanceName string) string {

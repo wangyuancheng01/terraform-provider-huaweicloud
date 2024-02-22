@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `certificate_content` - (Optional, String)  The CA certificate content of the customer gateway.
 
+* `tags` - (Optional, Map) Specifies the tags of the customer gateway.
+
 ## Attribute Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -85,6 +87,6 @@ In addition to all arguments above, the following attributes are exported:
 
 The customer gateway can be imported using the `id`, e.g.
 
-```
-$ terraform import huaweicloud_vpn_customer_gateway.test 0ce123456a00f2591fabc00385ff1234
+```bash
+$ terraform import huaweicloud_vpn_customer_gateway.test <id>
 ```

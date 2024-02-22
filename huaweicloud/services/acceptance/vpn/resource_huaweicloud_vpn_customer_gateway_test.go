@@ -15,14 +15,14 @@ import (
 	"github.com/huaweicloud/terraform-provider-huaweicloud/huaweicloud/utils"
 )
 
-func getCustomerGatewayResourceFunc(config *config.Config, state *terraform.ResourceState) (interface{}, error) {
+func getCustomerGatewayResourceFunc(conf *config.Config, state *terraform.ResourceState) (interface{}, error) {
 	region := acceptance.HW_REGION_NAME
 	// getCustomerGateway: Query the VPN customer gateway detail
 	var (
 		getCustomerGatewayHttpUrl = "v5/{project_id}/customer-gateways/{id}"
 		getCustomerGatewayProduct = "vpn"
 	)
-	getCustomerGatewayClient, err := config.NewServiceClient(getCustomerGatewayProduct, region)
+	getCustomerGatewayClient, err := conf.NewServiceClient(getCustomerGatewayProduct, region)
 	if err != nil {
 		return nil, fmt.Errorf("error creating CustomerGateway Client: %s", err)
 	}
@@ -69,14 +69,18 @@ func TestAccCustomerGateway_basic(t *testing.T) {
 					rc.CheckResourceExists(),
 					resource.TestCheckResourceAttr(rName, "name", name),
 					resource.TestCheckResourceAttr(rName, "ip", ipAddress),
+					resource.TestCheckResourceAttr(rName, "tags.key", "val"),
+					resource.TestCheckResourceAttr(rName, "tags.foo", "bar"),
 				),
 			},
 			{
-				Config: testCustomerGateway_basic(nameUpdate, ipAddress),
+				Config: testCustomerGateway_update(nameUpdate, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
 					rc.CheckResourceExists(),
 					resource.TestCheckResourceAttr(rName, "name", nameUpdate),
 					resource.TestCheckResourceAttr(rName, "ip", ipAddress),
+					resource.TestCheckResourceAttr(rName, "tags.key", "val"),
+					resource.TestCheckResourceAttr(rName, "tags.foo", "bar-update"),
 				),
 			},
 			{
@@ -155,6 +159,23 @@ func testCustomerGateway_basic(name, ipAddress string) string {
 resource "huaweicloud_vpn_customer_gateway" "test" {
   name = "%s"
   ip   = "%s"
+
+  tags = {
+    key = "val"
+    foo = "bar"
+  }
+}`, name, ipAddress)
+}
+
+func testCustomerGateway_update(name, ipAddress string) string {
+	return fmt.Sprintf(`
+resource "huaweicloud_vpn_customer_gateway" "test" {
+  name = "%s"
+  ip   = "%s"
+  tags = {
+    key = "val"
+    foo = "bar-update"
+  }
 }`, name, ipAddress)
 }
 
