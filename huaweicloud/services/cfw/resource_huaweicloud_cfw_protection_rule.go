@@ -30,6 +30,7 @@ import (
 // @API CFW PUT /v1/{project_id}/acl-rule/{id}
 // @API CFW GET /v1/{project_id}/acl-rules
 // @API CFW PUT /v1/{project_id}/acl-rule/order/{id}
+// @API CFW POST /v1/{project_id}/acl-rule/count
 func ResourceProtectionRule() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceProtectionRuleCreate,
@@ -148,6 +149,11 @@ func ResourceProtectionRule() *schema.Resource {
 				Description:  `The direction.`,
 				ValidateFunc: validation.IntInSlice([]int{0, 1}),
 			},
+			"rule_hit_count": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `The number of times the protection rule is hit`,
+			},
 		},
 	}
 }
@@ -228,32 +234,61 @@ func ProtectionRuleRuleAddressDtoSchema() *schema.Resource {
 			"address": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: `The IP address.`,
 			},
 			"address_set_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: `The ID of the associated IP address group.`,
 			},
 			"address_set_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: `The IP address group name.`,
 			},
 			"address_type": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Computed:    true,
 				Description: `The address type.`,
 			},
 			"domain_address_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Computed:    true,
 				Description: `The name of the domain name address.`,
+			},
+			"region_list": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        ProtectionRuleIpRegionDtoSchema(),
+				Description: `The region list.`,
+			},
+		},
+	}
+	return &sc
+}
+
+func ProtectionRuleIpRegionDtoSchema() *schema.Resource {
+	sc := schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"region_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: `The region ID.`,
+			},
+			"region_type": {
+				Type:        schema.TypeInt,
+				Required:    true,
+				Description: "The region type.",
+			},
+			"description_cn": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The Chinese description of the region.",
+			},
+			"description_en": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The English description of the region.",
 			},
 		},
 	}
@@ -380,6 +415,25 @@ func buildCreateProtectionRuleRequestBodyRuleAddressDto(rawParams interface{}) m
 			"address_type":        utils.ValueIngoreEmpty(raw["address_type"]),
 			"domain_address_name": utils.ValueIngoreEmpty(raw["domain_address_name"]),
 			"type":                raw["type"],
+			"region_list":         buildCreateProtectionRuleRequestBodyIpRegionDto(raw["region_list"]),
+		}
+		return params
+	}
+	return nil
+}
+
+func buildCreateProtectionRuleRequestBodyIpRegionDto(rawParams interface{}) []map[string]interface{} {
+	if rawArray, ok := rawParams.([]interface{}); ok {
+		params := make([]map[string]interface{}, 0, len(rawArray))
+		for _, rawRegion := range rawArray {
+			region := rawRegion.(map[string]interface{})
+			param := map[string]interface{}{
+				"region_id":      region["region_id"],
+				"region_type":    region["region_type"],
+				"description_cn": utils.ValueIngoreEmpty(region["description_cn"]),
+				"description_en": utils.ValueIngoreEmpty(region["description_en"]),
+			}
+			params = append(params, param)
 		}
 		return params
 	}
@@ -435,6 +489,11 @@ func resourceProtectionRuleRead(_ context.Context, d *schema.ResourceData, meta 
 		return common.CheckDeletedDiag(d, err, "error retrieving protection rule")
 	}
 
+	ruleHitCount, err := getRuleHitCount(getProtectionRuleClient, d.Id())
+	if err != nil {
+		return diag.Errorf("error retrieving protection rule hit count: %s", err)
+	}
+
 	// the params 'sequence' and 'type 'not not returned
 	mErr = multierror.Append(
 		mErr,
@@ -452,6 +511,7 @@ func resourceProtectionRuleRead(_ context.Context, d *schema.ResourceData, meta 
 		d.Set("source", flattenGetProtectionRuleResponseBodyRuleSourceAddressDto(rule)),
 		d.Set("destination", flattenGetProtectionRuleResponseBodyRuleDestinationAddressDto(rule)),
 		d.Set("status", utils.PathSearch("status", rule, nil)),
+		d.Set("rule_hit_count", ruleHitCount),
 	)
 
 	return diag.FromErr(mErr.ErrorOrNil())
@@ -468,6 +528,38 @@ func FilterRules(rules []interface{}, id string) (interface{}, error) {
 	}
 
 	return nil, golangsdk.ErrDefault404{}
+}
+
+func getRuleHitCount(client *golangsdk.ServiceClient, id string) (interface{}, error) {
+	getProtectionRuleHitCountHttpUrl := "v1/{project_id}/acl-rule/count"
+	getProtectionRuleHitCountPath := client.Endpoint + getProtectionRuleHitCountHttpUrl
+	getProtectionRuleHitCountPath = strings.ReplaceAll(getProtectionRuleHitCountPath, "{project_id}", client.ProjectID)
+
+	getProtectionRuleHitCountOpt := golangsdk.RequestOpts{
+		KeepResponseBody: true,
+		JSONBody:         buildRuleHitCountBodyParams(id),
+		OkCodes: []int{
+			200,
+		},
+	}
+
+	getProtectionRuleHitCountResp, err := client.Request("POST", getProtectionRuleHitCountPath, &getProtectionRuleHitCountOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	getProtectionRuleHitCountRespBody, err := utils.FlattenResponse(getProtectionRuleHitCountResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return jmespath.Search("data.records[0].rule_hit_count", getProtectionRuleHitCountRespBody)
+}
+
+func buildRuleHitCountBodyParams(id string) map[string]interface{} {
+	return map[string]interface{}{
+		"rule_ids": []string{id},
+	}
 }
 
 func flattenGetProtectionRuleResponseBodyRuleServiceDto(resp interface{}) []interface{} {
@@ -507,6 +599,7 @@ func flattenGetProtectionRuleResponseBodyRuleSourceAddressDto(resp interface{}) 
 			"address_type":        utils.PathSearch("address_type", curJson, nil),
 			"domain_address_name": utils.PathSearch("domain_address_name", curJson, nil),
 			"type":                utils.PathSearch("type", curJson, nil),
+			"region_list":         flattenGetProtectionRuleResponseBodyRuleIpRegionDto(curJson),
 		},
 	}
 	return rst
@@ -528,7 +621,27 @@ func flattenGetProtectionRuleResponseBodyRuleDestinationAddressDto(resp interfac
 			"address_type":        utils.PathSearch("address_type", curJson, nil),
 			"domain_address_name": utils.PathSearch("domain_address_name", curJson, nil),
 			"type":                utils.PathSearch("type", curJson, nil),
+			"region_list":         flattenGetProtectionRuleResponseBodyRuleIpRegionDto(curJson),
 		},
+	}
+	return rst
+}
+
+func flattenGetProtectionRuleResponseBodyRuleIpRegionDto(resp interface{}) []interface{} {
+	var rst []interface{}
+	curJson := utils.PathSearch("region_list", resp, nil)
+
+	if curJson == nil {
+		return rst
+	}
+	curArray := curJson.([]interface{})
+	for _, v := range curArray {
+		rst = append(rst, map[string]interface{}{
+			"region_id":      utils.PathSearch("region_id", v, nil),
+			"description_cn": utils.PathSearch("description_cn", v, nil),
+			"description_en": utils.PathSearch("description_en", v, nil),
+			"region_type":    utils.PathSearch("region_type", v, nil),
+		})
 	}
 	return rst
 }
@@ -679,6 +792,25 @@ func buildUpdateProtectionRuleRequestBodyRuleAddressDto(rawParams interface{}) m
 			"address_type":        utils.ValueIngoreEmpty(raw["address_type"]),
 			"domain_address_name": utils.ValueIngoreEmpty(raw["domain_address_name"]),
 			"type":                raw["type"],
+			"region_list":         buildUpdateProtectionRuleRequestBodyIpRegionDto(raw["region_list"]),
+		}
+		return params
+	}
+	return nil
+}
+
+func buildUpdateProtectionRuleRequestBodyIpRegionDto(rawParams interface{}) []map[string]interface{} {
+	if rawArray, ok := rawParams.([]interface{}); ok {
+		params := make([]map[string]interface{}, 0, len(rawArray))
+		for _, rawRegion := range rawArray {
+			region := rawRegion.(map[string]interface{})
+			param := map[string]interface{}{
+				"region_id":      region["region_id"],
+				"region_type":    region["region_type"],
+				"description_cn": utils.ValueIngoreEmpty(region["description_cn"]),
+				"description_en": utils.ValueIngoreEmpty(region["description_en"]),
+			}
+			params = append(params, param)
 		}
 		return params
 	}

@@ -13,14 +13,21 @@ import (
 )
 
 var (
-	HW_REGION_NAME                        = os.Getenv("HW_REGION_NAME")
-	HW_CUSTOM_REGION_NAME                 = os.Getenv("HW_CUSTOM_REGION_NAME")
-	HW_AVAILABILITY_ZONE                  = os.Getenv("HW_AVAILABILITY_ZONE")
-	HW_ACCESS_KEY                         = os.Getenv("HW_ACCESS_KEY")
-	HW_SECRET_KEY                         = os.Getenv("HW_SECRET_KEY")
-	HW_USER_ID                            = os.Getenv("HW_USER_ID")
-	HW_USER_NAME                          = os.Getenv("HW_USER_NAME")
-	HW_PROJECT_ID                         = os.Getenv("HW_PROJECT_ID")
+	HW_REGION_NAME        = os.Getenv("HW_REGION_NAME")
+	HW_REGION_NAME_1      = os.Getenv("HW_REGION_NAME_1")
+	HW_REGION_NAME_2      = os.Getenv("HW_REGION_NAME_2")
+	HW_REGION_NAME_3      = os.Getenv("HW_REGION_NAME_3")
+	HW_CUSTOM_REGION_NAME = os.Getenv("HW_CUSTOM_REGION_NAME")
+	HW_AVAILABILITY_ZONE  = os.Getenv("HW_AVAILABILITY_ZONE")
+	HW_ACCESS_KEY         = os.Getenv("HW_ACCESS_KEY")
+	HW_SECRET_KEY         = os.Getenv("HW_SECRET_KEY")
+	HW_USER_ID            = os.Getenv("HW_USER_ID")
+	HW_USER_NAME          = os.Getenv("HW_USER_NAME")
+	HW_PROJECT_ID         = os.Getenv("HW_PROJECT_ID")
+	HW_PROJECT_ID_1       = os.Getenv("HW_PROJECT_ID_1")
+	HW_PROJECT_ID_2       = os.Getenv("HW_PROJECT_ID_2")
+	HW_PROJECT_ID_3       = os.Getenv("HW_PROJECT_ID_3")
+
 	HW_DOMAIN_ID                          = os.Getenv("HW_DOMAIN_ID")
 	HW_DOMAIN_NAME                        = os.Getenv("HW_DOMAIN_NAME")
 	HW_ENTERPRISE_PROJECT_ID_TEST         = os.Getenv("HW_ENTERPRISE_PROJECT_ID_TEST")
@@ -65,10 +72,12 @@ var (
 	HW_RAM_SHARE_RESOURCE_URN        = os.Getenv("HW_RAM_SHARE_RESOURCE_URN")
 	HW_RAM_SHARE_UPDATE_ACCOUNT_ID   = os.Getenv("HW_RAM_SHARE_UPDATE_ACCOUNT_ID")
 	HW_RAM_SHARE_UPDATE_RESOURCE_URN = os.Getenv("HW_RAM_SHARE_UPDATE_RESOURCE_URN")
+	HW_RAM_ENABLE_FLAG               = os.Getenv("HW_RAM_ENABLE_FLAG")
 
 	HW_CDN_DOMAIN_NAME              = os.Getenv("HW_CDN_DOMAIN_NAME")
 	HW_CDN_CERT_PATH                = os.Getenv("HW_CDN_CERT_PATH")
 	HW_CDN_PRIVATE_KEY_PATH         = os.Getenv("HW_CDN_PRIVATE_KEY_PATH")
+	HW_CDN_ENABLE_FLAG              = os.Getenv("HW_CDN_ENABLE_FLAG")
 	HW_CERTIFICATE_KEY_PATH         = os.Getenv("HW_CERTIFICATE_KEY_PATH")
 	HW_CERTIFICATE_CHAIN_PATH       = os.Getenv("HW_CERTIFICATE_CHAIN_PATH")
 	HW_CERTIFICATE_PRIVATE_KEY_PATH = os.Getenv("HW_CERTIFICATE_PRIVATE_KEY_PATH")
@@ -195,6 +204,7 @@ var (
 	HW_SECMASTER_PIPELINE_ID = os.Getenv("HW_SECMASTER_PIPELINE_ID")
 
 	HW_MODELARTS_HAS_SUBSCRIBE_MODEL = os.Getenv("HW_MODELARTS_HAS_SUBSCRIBE_MODEL")
+	HW_MODELARTS_USER_LOGIN_PASSWORD = os.Getenv("HW_MODELARTS_USER_LOGIN_PASSWORD")
 
 	// The CMDB sub-application ID of AOM service
 	HW_AOM_SUB_APPLICATION_ID = os.Getenv("HW_AOM_SUB_APPLICATION_ID")
@@ -267,6 +277,10 @@ var (
 	HW_EVS_AVAILABILITY_ZONE_ESSD2  = os.Getenv("HW_EVS_AVAILABILITY_ZONE_ESSD2")
 
 	HW_ECS_LAUNCH_TEMPLATE_ID = os.Getenv("HW_ECS_LAUNCH_TEMPLATE_ID")
+
+	HW_IOTDA_BATCHTASK_FILE_PATH = os.Getenv("HW_IOTDA_BATCHTASK_FILE_PATH")
+
+	HW_DWS_MUTIL_AZS = os.Getenv("HW_DWS_MUTIL_AZS")
 )
 
 // TestAccProviders is a static map containing only the main provider instance.
@@ -660,6 +674,21 @@ func TestAccPreCheckRAM(t *testing.T) {
 }
 
 // lintignore:AT003
+func TestAccPreCheckRAMSharedPrincipals(t *testing.T) {
+	if HW_RAM_ENABLE_FLAG == "" {
+		t.Skip("Skip the RAM acceptance tests.")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckRAMSharedPrincipalsQueryFields(t *testing.T) {
+	if HW_RAM_SHARE_ACCOUNT_ID == "" || HW_RAM_SHARE_RESOURCE_URN == "" {
+		t.Skip("HW_RAM_SHARE_ACCOUNT_ID and HW_RAM_SHARE_RESOURCE_URN " +
+			"must be set for RAM shared principals tests.")
+	}
+}
+
+// lintignore:AT003
 func TestAccPreCheckDms(t *testing.T) {
 	if HW_DMS_ENVIRONMENT == "" {
 		t.Skip("This environment does not support DMS tests")
@@ -813,6 +842,20 @@ func TestAccPreCheckKmsHsmClusterId(t *testing.T) {
 func TestAccPreCheckProjectID(t *testing.T) {
 	if HW_PROJECT_ID == "" {
 		t.Skip("HW_PROJECT_ID must be set for acceptance tests")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckCCProjectID(t *testing.T) {
+	if HW_PROJECT_ID_1 == "" || HW_PROJECT_ID_2 == "" || HW_PROJECT_ID_3 == "" {
+		t.Skip("HW_PROJECT_ID_1, HW_PROJECT_ID_2, HW_PROJECT_ID_3 must be set for this acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckCCRegionName(t *testing.T) {
+	if HW_REGION_NAME_1 == "" || HW_REGION_NAME_2 == "" || HW_REGION_NAME_3 == "" {
+		t.Skip("HW_REGION_NAME_1, HW_REGION_NAME_2, HW_REGION_NAME_3 must be set for this acceptance test")
 	}
 }
 
@@ -1064,6 +1107,13 @@ func TestAccPreCheckModelArtsHasSubscribeModel(t *testing.T) {
 }
 
 // lintignore:AT003
+func TestAccPreCheckModelartsUserLoginPassword(t *testing.T) {
+	if HW_MODELARTS_USER_LOGIN_PASSWORD == "" {
+		t.Skip("HW_MODELARTS_USER_LOGIN_PASSWORD must be set for modelarts privilege resource pool acceptance test")
+	}
+}
+
+// lintignore:AT003
 func TestAccPreCheckEgChannelId(t *testing.T) {
 	if HW_EG_CHANNEL_ID == "" {
 		t.Skip("The sub-resource acceptance test of the EG channel must set 'HW_EG_CHANNEL_ID'")
@@ -1139,6 +1189,13 @@ func TestAccPreCheckCDN(t *testing.T) {
 func TestAccPreCheckCERT(t *testing.T) {
 	if HW_CDN_CERT_PATH == "" || HW_CDN_PRIVATE_KEY_PATH == "" {
 		t.Skip("This environment does not support CDN certificate tests")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckCDNDomainCertificates(t *testing.T) {
+	if HW_CDN_ENABLE_FLAG == "" {
+		t.Skip("Skip the CDN acceptance tests.")
 	}
 }
 
@@ -1248,5 +1305,19 @@ func TestAccPreCheckAKAndSK(t *testing.T) {
 func TestAccPreCheckECSLaunchTemplateID(t *testing.T) {
 	if HW_ECS_LAUNCH_TEMPLATE_ID == "" {
 		t.Skip("HW_ECS_LAUNCH_TEMPLATE_ID must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckIOTDABatchTaskFilePath(t *testing.T) {
+	if HW_IOTDA_BATCHTASK_FILE_PATH == "" {
+		t.Skip("HW_IOTDA_BATCHTASK_FILE_PATH must be set for the acceptance test")
+	}
+}
+
+// lintignore:AT003
+func TestAccPreCheckMutilAZ(t *testing.T) {
+	if HW_DWS_MUTIL_AZS == "" {
+		t.Skip("HW_DWS_MUTIL_AZS must be set for the acceptance test")
 	}
 }
