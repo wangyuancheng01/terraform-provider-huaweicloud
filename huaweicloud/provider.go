@@ -451,6 +451,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_cph_phone_flavors":  cph.DataSourcePhoneFlavors(),
 			"huaweicloud_cph_phone_images":   cph.DataSourcePhoneImages(),
 
+			"huaweicloud_csms_secrets":        dew.DataSourceDewCsmsSecrets(),
 			"huaweicloud_csms_secret_version": dew.DataSourceDewCsmsSecret(),
 			"huaweicloud_csms_events":         dew.DataSourceDewCsmsEvents(),
 			"huaweicloud_css_flavors":         css.DataSourceCssFlavors(),
@@ -707,8 +708,9 @@ func Provider() *schema.Provider {
 			"huaweicloud_waf_domains":             waf.DataSourceWafDomains(),
 			"huaweicloud_waf_address_groups":      waf.DataSourceWafAddressGroups(),
 
-			"huaweicloud_dws_flavors":               dws.DataSourceDwsFlavors(),
-			"huaweicloud_dws_logical_cluster_rings": dws.DataSourceLogicalClusterRings(),
+			"huaweicloud_dws_flavors":                 dws.DataSourceDwsFlavors(),
+			"huaweicloud_dws_logical_cluster_rings":   dws.DataSourceLogicalClusterRings(),
+			"huaweicloud_dws_disaster_recovery_tasks": dws.DataSourceDisasterRecoveryTasks(),
 
 			"huaweicloud_workspace_desktops": workspace.DataSourceDesktops(),
 			"huaweicloud_workspace_flavors":  workspace.DataSourceWorkspaceFlavors(),
@@ -927,12 +929,13 @@ func Provider() *schema.Provider {
 			"huaweicloud_csms_event":  dew.ResourceCsmsEvent(),
 			"huaweicloud_csms_secret": dew.ResourceCsmsSecret(),
 
-			"huaweicloud_css_cluster":          css.ResourceCssCluster(),
-			"huaweicloud_css_logstash_cluster": css.ResourceLogstashCluster(),
-			"huaweicloud_css_snapshot":         css.ResourceCssSnapshot(),
-			"huaweicloud_css_thesaurus":        css.ResourceCssthesaurus(),
-			"huaweicloud_css_configuration":    css.ResourceCssConfiguration(),
-			"huaweicloud_css_scan_task":        css.ResourceScanTask(),
+			"huaweicloud_css_cluster":                css.ResourceCssCluster(),
+			"huaweicloud_css_snapshot":               css.ResourceCssSnapshot(),
+			"huaweicloud_css_thesaurus":              css.ResourceCssthesaurus(),
+			"huaweicloud_css_configuration":          css.ResourceCssConfiguration(),
+			"huaweicloud_css_scan_task":              css.ResourceScanTask(),
+			"huaweicloud_css_logstash_cluster":       css.ResourceLogstashCluster(),
+			"huaweicloud_css_logstash_configuration": css.ResourceLogstashConfiguration(),
 
 			"huaweicloud_dbss_instance": dbss.ResourceInstance(),
 
@@ -1059,7 +1062,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_fgs_dependency_version":         fgs.ResourceDependencyVersion(),
 			"huaweicloud_fgs_function":                   fgs.ResourceFgsFunctionV2(),
 			"huaweicloud_fgs_function_event":             fgs.ResourceFunctionEvent(),
-			"huaweicloud_fgs_trigger":                    fgs.ResourceFunctionGraphTrigger(),
+			"huaweicloud_fgs_function_trigger":           fgs.ResourceFunctionTrigger(),
 
 			"huaweicloud_ga_accelerator":    ga.ResourceAccelerator(),
 			"huaweicloud_ga_address_group":  ga.ResourceIpAddressGroup(),
@@ -1549,6 +1552,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_csbs_backup_policy":             deprecated.ResourceCSBSBackupPolicyV1(),
 			"huaweicloud_csbs_backup_policy_v1":          deprecated.ResourceCSBSBackupPolicyV1(),
 			"huaweicloud_csbs_backup_v1":                 deprecated.ResourceCSBSBackupV1(),
+			"huaweicloud_fgs_trigger":                    deprecated.ResourceFunctionGraphTrigger(),
 			"huaweicloud_networking_network_v2":          deprecated.ResourceNetworkingNetworkV2(),
 			"huaweicloud_networking_subnet_v2":           deprecated.ResourceNetworkingSubnetV2(),
 			"huaweicloud_networking_floatingip_v2":       deprecated.ResourceNetworkingFloatingIPV2(),
